@@ -1,0 +1,15 @@
+{
+  "name": "grabbit-monorepo",
+  "private": true,
+  "workspaces": [
+    "apps/*"
+  ],
+  "scripts": {
+    "grabbit:dev": "npm run dev -w apps/grabbit",
+    "grabbit:build": "npm run build -w apps/grabbit",
+    "website:dev": "npm run dev -w apps/website",
+    "website:build": "npm run build -w apps/website",
+    "dev:app": "npm run grabbit:dev",
+    "dev:website": "npm run website:dev"
+  }
+}
