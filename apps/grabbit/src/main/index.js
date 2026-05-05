@@ -17,7 +17,9 @@ function createWindow() {
   mainWindow = new BrowserWindow({
     width: 900,
     height: 600,
-    resizable: false,
+    minWidth: 700,
+    minHeight: 500,
+    resizable: true,
     frame: false, // frameless — we render our own titlebar
     backgroundColor: '#0f0f0f',
     show: false, // show after ready-to-show to avoid flash
@@ -33,6 +35,14 @@ function createWindow() {
   // Graceful show to prevent white flash
   mainWindow.on('ready-to-show', () => {
     mainWindow.show()
+  })
+
+  // Track maximized state for the custom titlebar
+  mainWindow.on('maximize', () => {
+    mainWindow.webContents.send('window:maximized-change', true)
+  })
+  mainWindow.on('unmaximize', () => {
+    mainWindow.webContents.send('window:maximized-change', false)
   })
 
   // Open external links in the default browser

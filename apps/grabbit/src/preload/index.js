@@ -32,5 +32,12 @@ contextBridge.exposeInMainWorld('grabbit', {
 
   // ── Window Controls (frameless titlebar) ───────────────────
   minimize: () => ipcRenderer.send('window:minimize'),
-  close: () => ipcRenderer.send('window:close')
+  maximize: () => ipcRenderer.send('window:maximize'),
+  close: () => ipcRenderer.send('window:close'),
+
+  onMaximizedChange: (callback) => {
+    const handler = (_event, state) => callback(state)
+    ipcRenderer.on('window:maximized-change', handler)
+    return () => ipcRenderer.removeListener('window:maximized-change', handler)
+  }
 })

@@ -13,32 +13,57 @@ import logo from './assets/logo.png'
 
 // ─── Custom Titlebar ────────────────────────────────────────────
 function Titlebar() {
+  const [isMaximized, setIsMaximized] = useState(false)
+
+  useEffect(() => {
+    const cleanup = window.grabbit.onMaximizedChange((state) => {
+      setIsMaximized(state)
+    })
+    return cleanup
+  }, [])
+
   return (
-    <div className="titlebar-drag flex items-center justify-between h-9 bg-gb-surface border-b border-gb-border px-4 shrink-0">
+    <div className="titlebar-drag flex items-center justify-between h-8 bg-gb-surface border-b border-gb-border pl-3 shrink-0">
       {/* App title */}
       <div className="flex items-center gap-2 titlebar-no-drag">
         <img src={logo} alt="Grabbit" className="w-4 h-4 object-contain" />
-        <span className="text-xs font-semibold tracking-wide text-gb-text-dim uppercase">Grabbit</span>
+        <span className="text-[10px] font-bold tracking-widest text-gb-text-dim uppercase">Grabbit</span>
       </div>
 
       {/* Window controls */}
-      <div className="flex items-center gap-1 titlebar-no-drag">
+      <div className="flex items-center titlebar-no-drag h-full">
         <button
           onClick={() => window.grabbit.minimize()}
-          className="w-7 h-7 flex items-center justify-center rounded hover:bg-gb-surface-light transition-colors"
+          className="w-11 h-full flex items-center justify-center hover:bg-white/5 transition-colors"
           aria-label="Minimize"
         >
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor" className="text-gb-text-dim">
-            <rect y="5" width="12" height="1.5" rx="0.75" />
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2 6h8" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
           </svg>
         </button>
         <button
+          onClick={() => window.grabbit.maximize()}
+          className="w-11 h-full flex items-center justify-center hover:bg-white/5 transition-colors"
+          aria-label={isMaximized ? 'Restore' : 'Maximize'}
+        >
+          {isMaximized ? (
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M3.5 2.5h6v6h-6v-6z" stroke="white" strokeWidth="1.2" />
+              <path d="M2.5 4.5h6v6h-6v-6z" stroke="white" strokeWidth="1.2" fill="#181818" />
+            </svg>
+          ) : (
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <rect x="2.5" y="2.5" width="7" height="7" stroke="white" strokeWidth="1.2" />
+            </svg>
+          )}
+        </button>
+        <button
           onClick={() => window.grabbit.close()}
-          className="w-7 h-7 flex items-center justify-center rounded hover:bg-gb-error/20 hover:text-gb-error transition-colors"
+          className="w-11 h-full flex items-center justify-center hover:bg-[#e81123] transition-colors group"
           aria-label="Close"
         >
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor" className="text-gb-text-dim">
-            <path d="M1 1l10 10M11 1L1 11" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" fill="none" />
+          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M3 3l6 6m0-6L3 9" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
           </svg>
         </button>
       </div>
