@@ -125,7 +125,7 @@ export function fetchVideoInfo(url) {
 /**
  * Spawns yt-dlp to download a video/audio.
  *
- * @param {string}   url       – YouTube URL
+ * @param {string}   url       – YouTube or Facebook URL
  * @param {object}   format    – { id, type } from fetchVideoInfo
  * @param {string}   saveDir   – Target directory
  * @param {function} onProgress – Called with { percent, speed, eta, filename }

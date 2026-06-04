@@ -1,21 +1,22 @@
 {
-  "name": "grabbit",
+  "name": "windows",
   "version": "1.0.0",
   "description": "A modern YouTube & multi-platform video/audio downloader",
   "main": "./out/main/index.js",
-  "author": "Grabbit",
+  "author": "Lessmanual Technologies",
   "license": "MIT",
   "scripts": {
     "dev": "electron-vite dev",
     "build": "electron-vite build",
     "preview": "electron-vite preview",
     "start": "electron-vite preview",
-    "build:win": "npm run build && electron-builder --win --config",
-    "build:unpack": "npm run build && electron-builder --win --dir --config"
+    "build:win": "npm run build && electron-builder --win",
+    "build:unpack": "npm run build && electron-builder --win --dir"
   },
   "dependencies": {
     "@electron-toolkit/utils": "^4.0.0",
-    "electron-store": "^8.2.0"
+    "electron-store": "^8.2.0",
+    "electron-updater": "^6.3.9"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.4",
@@ -30,10 +31,19 @@
     "vite": "^5.4.14"
   },
   "build": {
+    "electronVersion": "33.3.1",
     "appId": "com.grabbit.app",
     "productName": "Grabbit",
+    "copyright": "Copyright \u00a9 2026 Lessmanual Technologies",
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "zubulika",
+        "repo": "Grabbit"
+      }
+    ],
     "directories": {
-      "buildResources": "build",
+      "buildResources": "resources",
       "output": "dist"
     },
     "files": [
@@ -50,6 +60,7 @@
       }
     ],
     "win": {
+      "publisherName": "Lessmanual Technologies",
       "target": [
         {
           "target": "nsis",
@@ -58,13 +69,16 @@
           ]
         }
       ],
-      "icon": "build/icon.ico"
+      "icon": "resources/icon.ico"
     },
     "nsis": {
       "oneClick": false,
       "perMachine": false,
       "allowToChangeInstallationDirectory": true,
-      "deleteAppDataOnUninstall": true
+      "deleteAppDataOnUninstall": true,
+      "differentialPackage": true,
+      "artifactName": "${productName}Setup.${ext}",
+      "license": "resources/license.txt"
     }
   }
 }

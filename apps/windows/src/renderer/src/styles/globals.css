@@ -65,7 +65,10 @@ html, body {
 }
 
 /* ─── Input focus ring ───────────────────────────────────────── */
-input:focus,
+input:focus {
+  outline: none;
+}
+
 button:focus-visible {
   outline: none;
   box-shadow: 0 0 0 2px rgba(255, 0, 0, 0.3);

@@ -5,11 +5,11 @@
     "apps/*"
   ],
   "scripts": {
-    "grabbit:dev": "npm run dev -w apps/grabbit",
-    "grabbit:build": "npm run build -w apps/grabbit",
+    "windows:dev": "npm run dev -w apps/windows",
+    "windows:build": "npm run build -w apps/windows",
     "website:dev": "npm run dev -w apps/website",
     "website:build": "npm run build -w apps/website",
-    "dev:app": "npm run grabbit:dev",
+    "dev:app": "npm run windows:dev",
     "dev:website": "npm run website:dev"
   }
 }

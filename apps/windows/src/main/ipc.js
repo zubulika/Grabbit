@@ -5,7 +5,7 @@
  * The renderer calls these via the contextBridge-exposed API.
  */
 
-import { ipcMain, dialog, shell, BrowserWindow } from 'electron'
+import { ipcMain, dialog, shell, BrowserWindow, app } from 'electron'
 import path from 'path'
 import Store from 'electron-store'
 import { fetchVideoInfo, downloadMedia, defaultDownloadDir } from './downloader.js'
@@ -122,6 +122,11 @@ export function registerIpcHandlers() {
   ipcMain.handle('settings:set', async (_event, { key, value }) => {
     store.set(key, value)
     return { success: true }
+  })
+
+  // ── Get App Version ───────────────────────────────────────
+  ipcMain.handle('get-version', () => {
+    return app.getVersion()
   })
 
 }

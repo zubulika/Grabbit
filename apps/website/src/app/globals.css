@@ -1,26 +1,63 @@
 @import "tailwindcss";
 
+@theme {
+  --color-gb-bg: #0f0f0f;
+  --color-gb-surface: #181818;
+  --color-gb-surface-light: #212121;
+  --color-gb-border: #2a2a2a;
+  --color-gb-text: #ffffff;
+  --color-gb-text-dim: #aaaaaa;
+  --color-gb-text-muted: #717171;
+  --color-gb-accent: #ff0000;
+  --color-gb-accent-hover: #cc0000;
+  --color-gb-success: #00c853;
+  --color-gb-error: #ff3d3d;
+  --color-gb-warning: #ffab00;
+  
+  --radius-gb: 10px;
+  --radius-gb-sm: 6px;
+  --radius-gb-lg: 14px;
+  
+  --animate-slide-up: slideUp 0.4s ease-out;
+  --animate-fade-in: fadeIn 0.3s ease-out;
+  
+  --font-display: var(--font-plus-jakarta), sans-serif;
+}
+
+@keyframes slideUp {
+  0% { transform: translateY(20px); opacity: 0; }
+  100% { transform: translateY(0); opacity: 1; }
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; }
+  100% { opacity: 1; }
+}
+
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
-
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+  --background: #0f0f0f;
+  --foreground: #ffffff;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  font-family: var(--font-geist-sans), Inter, system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
 }
+
+/* Custom scrollbar matching app */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #0f0f0f;
+}
+::-webkit-scrollbar-thumb {
+  background: #2a2a2a;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3a3a3a;
+}
+

@@ -9,73 +9,42 @@ import React, { useState, useEffect, useCallback } from 'react'
 import URLInput from './components/URLInput'
 import FormatPicker from './components/FormatPicker'
 import ProgressCard from './components/ProgressCard'
+import SettingsPanel from './components/SettingsPanel'
 import logo from './assets/logo.png'
 
-// ─── Custom Titlebar ────────────────────────────────────────────
-function Titlebar() {
-  const [isMaximized, setIsMaximized] = useState(false)
-
-  useEffect(() => {
-    const cleanup = window.grabbit.onMaximizedChange((state) => {
-      setIsMaximized(state)
-    })
-    return cleanup
-  }, [])
-
-  return (
-    <div className="titlebar-drag flex items-center justify-between h-8 bg-gb-surface border-b border-gb-border pl-3 shrink-0">
-      {/* App title */}
-      <div className="flex items-center gap-2 titlebar-no-drag">
-        <img src={logo} alt="Grabbit" className="w-4 h-4 object-contain" />
-        <span className="text-[10px] font-bold tracking-widest text-gb-text-dim uppercase">Grabbit</span>
-      </div>
-
-      {/* Window controls */}
-      <div className="flex items-center titlebar-no-drag h-full">
-        <button
-          onClick={() => window.grabbit.minimize()}
-          className="w-11 h-full flex items-center justify-center hover:bg-white/5 transition-colors"
-          aria-label="Minimize"
-        >
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M2 6h8" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
-          </svg>
-        </button>
-        <button
-          onClick={() => window.grabbit.maximize()}
-          className="w-11 h-full flex items-center justify-center hover:bg-white/5 transition-colors"
-          aria-label={isMaximized ? 'Restore' : 'Maximize'}
-        >
-          {isMaximized ? (
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <path d="M3.5 2.5h6v6h-6v-6z" stroke="white" strokeWidth="1.2" />
-              <path d="M2.5 4.5h6v6h-6v-6z" stroke="white" strokeWidth="1.2" fill="#181818" />
-            </svg>
-          ) : (
-            <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-              <rect x="2.5" y="2.5" width="7" height="7" stroke="white" strokeWidth="1.2" />
-            </svg>
-          )}
-        </button>
-        <button
-          onClick={() => window.grabbit.close()}
-          className="w-11 h-full flex items-center justify-center hover:bg-[#e81123] transition-colors group"
-          aria-label="Close"
-        >
-          <svg width="12" height="12" viewBox="0 0 12 12" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <path d="M3 3l6 6m0-6L3 9" stroke="white" strokeWidth="1.2" strokeLinecap="round" />
-          </svg>
-        </button>
-      </div>
-    </div>
-  )
-}
 
 // ─── App States ─────────────────────────────────────────────────
 const VIEW = {
   INPUT: 'input',
   FORMAT: 'format',
-  PROGRESS: 'progress'
+  PROGRESS: 'progress',
+  SETTINGS: 'settings'
+}
+
+// ─── Draggable Titlebar Header ──────────────────────────────────
+function Titlebar({ onOpenSettings }) {
+  return (
+    <div className="titlebar-drag flex items-center justify-between h-8 bg-gb-bg px-3 shrink-0 select-none">
+      <div className="flex items-center gap-2 titlebar-no-drag">
+        <img src={logo} alt="Grabbit" className="w-4 h-4 object-contain" />
+        <span className="text-[10px] font-bold tracking-widest text-gb-text-dim uppercase">Grabbit</span>
+      </div>
+
+      {/* Settings icon shifted left to not overlap with Windows native window controls overlay */}
+      <div className="flex items-center titlebar-no-drag mr-[140px]">
+        <button
+          onClick={onOpenSettings}
+          className="p-1 text-gb-text-dim hover:text-gb-text hover:bg-white/5 rounded transition-colors"
+          title="Settings"
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="3" />
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  )
 }
 
 export default function App() {
@@ -91,11 +60,25 @@ export default function App() {
   const [downloadFolder, setDownloadFolder] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [fetchError, setFetchError] = useState('')
+  const [version, setVersion] = useState('1.0.0')
+  const [prevView, setPrevView] = useState(VIEW.INPUT)
 
-  // ── Load saved settings on mount ──────────────────────────
+  const handleOpenSettings = useCallback(() => {
+    setPrevView(view)
+    setView(VIEW.SETTINGS)
+  }, [view])
+
+  const handleCloseSettings = useCallback(() => {
+    setView(prevView)
+  }, [prevView])
+
+  // ── Load saved settings and version on mount ──────────────
   useEffect(() => {
     window.grabbit.getSettings().then((settings) => {
       if (settings.downloadFolder) setDownloadFolder(settings.downloadFolder)
+    })
+    window.grabbit.getVersion().then((ver) => {
+      if (ver) setVersion(ver)
     })
   }, [])
 
@@ -184,7 +167,8 @@ export default function App() {
 
   return (
     <div className="flex flex-col h-full">
-      <Titlebar />
+
+      <Titlebar onOpenSettings={handleOpenSettings} />
 
       {/* Main content area */}
       <main className="flex-1 flex flex-col items-center justify-center px-8 py-6 overflow-hidden">
@@ -198,7 +182,7 @@ export default function App() {
               </div>
               <h1 className="text-2xl font-bold text-gb-text mb-1">Grabbit</h1>
               <p className="text-sm text-gb-text-muted">
-                Paste a YouTube link and download in seconds
+                Paste a YouTube or Facebook link and download in seconds
               </p>
             </div>
 
@@ -261,11 +245,23 @@ export default function App() {
             />
           </div>
         )}
+
+        {/* ── Settings Page ─────────────────────────────────── */}
+        {view === VIEW.SETTINGS && (
+          <div className="w-full max-w-xl animate-slide-up">
+            <SettingsPanel
+              onClose={handleCloseSettings}
+              downloadFolder={downloadFolder}
+              onChooseFolder={handleChooseFolder}
+              version={version}
+            />
+          </div>
+        )}
       </main>
 
       {/* Footer */}
       <footer className="h-7 flex items-center justify-center text-[10px] text-gb-text-muted border-t border-gb-border shrink-0">
-        Grabbit v1.0 — Powered by yt-dlp
+        Grabbit v{version} — Powered by Lessmanual Technologies
       </footer>
     </div>
   )

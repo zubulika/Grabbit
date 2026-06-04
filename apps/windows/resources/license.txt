@@ -1,0 +1,31 @@
+GRABBIT END USER LICENSE AGREEMENT (EULA)
+
+Please read this End User License Agreement ("Agreement") carefully before clicking the "I Agree" button, installing, or using Grabbit ("Application").
+
+By installing or using the Application, you are agreeing to be bound by the terms and conditions of this Agreement. If you do not agree to the terms of this Agreement, do not install or use the Application.
+
+1. LICENSE GRANT
+Lessmanual Technologies grants you a personal, non-transferable, non-exclusive license to use the Application on your devices strictly in accordance with the terms of this Agreement.
+
+2. RESTRICTIONS
+You agree not to, and you will not permit others to:
+- License, sell, rent, lease, assign, distribute, host, or otherwise commercially exploit the Application.
+- Modify, make derivative works of, disassemble, decrypt, reverse compile, or reverse engineer any part of the Application.
+- Use the Application for any illegal activities, including downloading copyrighted materials without the permission of the copyright owner.
+
+3. INTELLECTUAL PROPERTY
+The Application, including without limitation all copyrights, patents, trademarks, trade secrets, and other intellectual property rights are, and shall remain, the sole and exclusive property of Lessmanual Technologies.
+
+4. USER RESPONSIBILITY
+You assume all responsibility and risk for the download, conversion, and use of media accessed through the Application. You agree to comply with all applicable local, national, and international laws regarding intellectual property and copyright.
+
+5. TERMINATION
+This Agreement shall remain in effect until terminated by you or Lessmanual Technologies. Lessmanual Technologies may, in its sole discretion, at any time and for any or no reason, suspend or terminate this Agreement with or without prior notice.
+
+6. LIMITATION OF LIABILITY
+In no event shall Lessmanual Technologies be liable for any special, incidental, indirect, or consequential damages whatsoever arising out of or in connection with your use of or inability to use the Application.
+
+7. AMENDMENTS TO THIS AGREEMENT
+Lessmanual Technologies reserves the right, at its sole discretion, to modify or replace this Agreement at any time.
+
+If you have any questions about this Agreement, please contact Lessmanual Technologies.

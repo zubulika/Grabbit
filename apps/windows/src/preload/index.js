@@ -29,6 +29,7 @@ contextBridge.exposeInMainWorld('grabbit', {
   // ── Settings ───────────────────────────────────────────────
   getSettings: () => ipcRenderer.invoke('settings:get'),
   setSetting: (key, value) => ipcRenderer.invoke('settings:set', { key, value }),
+  getVersion: () => ipcRenderer.invoke('get-version'),
 
   // ── Window Controls (frameless titlebar) ───────────────────
   minimize: () => ipcRenderer.send('window:minimize'),
@@ -39,5 +40,18 @@ contextBridge.exposeInMainWorld('grabbit', {
     const handler = (_event, state) => callback(state)
     ipcRenderer.on('window:maximized-change', handler)
     return () => ipcRenderer.removeListener('window:maximized-change', handler)
+  },
+
+  // ── Auto Updater ───────────────────────────────────────────
+  checkForUpdates: () => ipcRenderer.send('updater:check'),
+  onUpdaterStatus: (callback) => {
+    const handler = (_event, status, info) => callback(status, info)
+    ipcRenderer.on('updater:status', handler)
+    return () => ipcRenderer.removeListener('updater:status', handler)
+  },
+  onUpdaterProgress: (callback) => {
+    const handler = (_event, percent) => callback(percent)
+    ipcRenderer.on('updater:progress', handler)
+    return () => ipcRenderer.removeListener('updater:progress', handler)
   }
 })

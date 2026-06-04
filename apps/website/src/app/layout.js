@@ -1,4 +1,4 @@
-import { Geist, Geist_Mono } from "next/font/google";
+import { Geist, Geist_Mono, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -11,16 +11,21 @@ const geistMono = Geist_Mono({
   subsets: ["latin"],
 });
 
+const plusJakarta = Plus_Jakarta_Sans({
+  variable: "--font-plus-jakarta",
+  subsets: ["latin"],
+});
+
 export const metadata = {
-  title: "Grabbit — Modern Video Downloader",
-  description: "Minimalist, lightning-fast desktop app for fetching high-quality video and audio from YouTube and beyond.",
+  title: "Grabbit — Grab anything from the internet",
+  description: "A simple, lightning-fast app to download video, audio, and media from the internet. Paste a link and grab your files instantly, with zero configuration required.",
 };
 
 export default function RootLayout({ children }) {
   return (
     <html
       lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      className={`${geistSans.variable} ${geistMono.variable} ${plusJakarta.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
