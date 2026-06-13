@@ -230,7 +230,7 @@ export default function SettingsPanel({ onClose, downloadFolder, onChooseFolder,
 
       {/* Footer */}
       <div className="text-center text-[10px] text-gb-text-muted mt-2 border-t border-gb-border pt-4">
-        Grabbit is licensed under MIT. © 2026 Lessmanual Technologies.
+        Grabbit is licensed under MIT. © 2026 Grabbit.
       </div>
     </div>
   )

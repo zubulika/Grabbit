@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "A modern YouTube & multi-platform video/audio downloader",
   "main": "./out/main/index.js",
-  "author": "Lessmanual Technologies",
+  "author": "Grabbit",
   "license": "MIT",
   "scripts": {
     "dev": "electron-vite dev",
@@ -34,7 +34,7 @@
     "electronVersion": "33.3.1",
     "appId": "com.grabbit.app",
     "productName": "Grabbit",
-    "copyright": "Copyright \u00a9 2026 Lessmanual Technologies",
+    "copyright": "Copyright © 2026 Grabbit",
     "publish": [
       {
         "provider": "github",
@@ -60,7 +60,7 @@
       }
     ],
     "win": {
-      "publisherName": "Lessmanual Technologies",
+      "publisherName": "Grabbit",
       "target": [
         {
           "target": "nsis",

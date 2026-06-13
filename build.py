@@ -72,7 +72,7 @@ class BuildApp:
         title_lbl = ttk.Label(header_frame, text="Grabbit Release Builder", style="Title.TLabel")
         title_lbl.grid(row=0, column=0, sticky="w")
         
-        subtitle_lbl = ttk.Label(header_frame, text="Powered by Lessmanual Technologies", style="Subtitle.TLabel")
+        subtitle_lbl = ttk.Label(header_frame, text="Powered by Grabbit", style="Subtitle.TLabel")
         subtitle_lbl.grid(row=1, column=0, sticky="w", pady=(2, 0))
 
         # Config Panel (Card)

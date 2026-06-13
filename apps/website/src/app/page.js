@@ -507,7 +507,7 @@ export default function Home() {
 
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4 text-gb-text-muted text-[11px]">
-          <p>&copy; 2026 Grabbit. MIT Licensed. Powered by Lessmanual Technologies.</p>
+          <p>&copy; 2026 Grabbit. MIT Licensed. Powered by Grabbit.</p>
           <div className="flex gap-4">
             <a href="https://github.com/zubulika/Grabbit" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">GitHub</a>
             <span>&bull;</span>

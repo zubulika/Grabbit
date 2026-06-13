@@ -261,7 +261,7 @@ export default function App() {
 
       {/* Footer */}
       <footer className="h-7 flex items-center justify-center text-[10px] text-gb-text-muted border-t border-gb-border shrink-0">
-        Grabbit v{version} — Powered by Lessmanual Technologies
+        Grabbit v{version} — Powered by Grabbit
       </footer>
     </div>
   )
