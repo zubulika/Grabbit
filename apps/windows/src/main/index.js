@@ -5,6 +5,7 @@
  * registers all IPC handlers, and manages app lifecycle events.
  */
 
+import './logger.js'
 import { app, BrowserWindow, shell, ipcMain, dialog } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'

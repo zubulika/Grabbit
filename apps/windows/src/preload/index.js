@@ -55,5 +55,10 @@ contextBridge.exposeInMainWorld('grabbit', {
     const handler = (_event, percent) => callback(percent)
     ipcRenderer.on('updater:progress', handler)
     return () => ipcRenderer.removeListener('updater:progress', handler)
-  }
+  },
+
+  // ── Diagnostics & Logs ──────────────────────────────────────
+  openLogsFolder: () => ipcRenderer.invoke('app:open-logs'),
+  getLogPaths: () => ipcRenderer.invoke('app:get-log-paths'),
+  log: (level, message, tag) => ipcRenderer.send('app:log', { level, message, tag })
 })

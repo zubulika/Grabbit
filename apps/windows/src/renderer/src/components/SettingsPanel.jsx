@@ -6,11 +6,15 @@ export default function SettingsPanel({ onClose, downloadFolder, onChooseFolder,
   const [updaterProgress, setUpdaterProgress] = useState(0)
   const [availableVersion, setAvailableVersion] = useState('')
   const [updaterError, setUpdaterError] = useState('')
+  const [logPaths, setLogPaths] = useState(null)
 
   // Load current settings on mount
   useEffect(() => {
     window.grabbit.getSettings().then((settings) => {
       if (settings.preferredFormat) setPreferredFormat(settings.preferredFormat)
+    })
+    window.grabbit.getLogPaths?.().then((paths) => {
+      if (paths) setLogPaths(paths)
     })
   }, [])
 
@@ -228,6 +232,51 @@ export default function SettingsPanel({ onClose, downloadFolder, onChooseFolder,
                   {updaterError}
                 </span>
               )}
+            </div>
+          </div>
+        </div>
+
+        {/* Backend Logs & Diagnostics */}
+        <div className="flex flex-col gap-2 pt-2 border-t border-gb-border">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-semibold uppercase tracking-wider text-gb-text-dim flex items-center gap-2">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-gb-accent">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="16" y1="13" x2="8" y2="13"></line>
+                <line x1="16" y1="17" x2="8" y2="17"></line>
+                <polyline points="10 9 9 9 8 9"></polyline>
+              </svg>
+              <span>Backend Session Logs</span>
+            </label>
+            {logPaths?.sessionId && (
+              <span className="font-mono text-[10px] text-gb-text-muted lowercase px-1.5 py-0.5 bg-black/30 rounded border border-white/5">
+                {logPaths.sessionId}
+              </span>
+            )}
+          </div>
+          <div className="bg-[#212121] border border-gb-border rounded-gb-sm p-3 flex flex-col gap-2.5">
+            <p className="text-xs text-gb-text-dim leading-relaxed">
+              Every launch records a timestamped backend session log capturing extractor calls, process telemetry, and runtime events.
+            </p>
+            <div className="flex items-center justify-between gap-3 pt-1 border-t border-white/5">
+              <div className="flex items-center gap-1.5 min-w-0">
+                <div className="w-1.5 h-1.5 rounded-full bg-gb-success animate-pulse shrink-0" />
+                <span className="font-mono text-[11px] text-gb-text-muted truncate max-w-[260px]" title={logPaths?.currentLogFile || ''}>
+                  {logPaths?.currentLogFile ? logPaths.currentLogFile.split(/[/\\]/).pop() : 'session.log'}
+                </span>
+              </div>
+              <button
+                type="button"
+                onClick={() => window.grabbit.openLogsFolder?.()}
+                className="px-3 py-1.5 bg-gb-surface-light hover:bg-white/10 text-xs font-medium rounded-gb-sm transition-colors text-gb-text flex items-center gap-1.5 border border-gb-border hover:border-gb-text-dim/40 cursor-pointer active:scale-95 shrink-0"
+                title="Open the logs folder in Windows Explorer"
+              >
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/>
+                </svg>
+                Open Logs Folder
+              </button>
             </div>
           </div>
         </div>

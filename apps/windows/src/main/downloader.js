@@ -50,8 +50,10 @@ const FFMPEG = () => getBinPath('ffmpeg.exe')
 export function updateYtDlp() {
   return new Promise((resolve) => {
     try {
+      console.log('[Downloader] Running yt-dlp -U update check...')
       const ytdlp = YT_DLP()
       if (!fs.existsSync(ytdlp)) {
+        console.warn('[Downloader] yt-dlp binary not found at:', ytdlp)
         return resolve({ success: false, error: 'yt-dlp binary not found' })
       }
       const proc = spawn(ytdlp, ['-U', '--no-warnings'], { windowsHide: true })
@@ -59,12 +61,15 @@ export function updateYtDlp() {
       proc.stdout.on('data', (d) => { output += d.toString() })
       proc.stderr.on('data', (d) => { output += d.toString() })
       proc.on('close', (code) => {
+        console.log('[Downloader] yt-dlp update finished with code:', code, output.trim())
         resolve({ success: code === 0, output: output.trim() })
       })
       proc.on('error', (err) => {
+        console.error('[Downloader] yt-dlp update error:', err.message)
         resolve({ success: false, error: err.message })
       })
     } catch (e) {
+      console.error('[Downloader] yt-dlp update exception:', e.message)
       resolve({ success: false, error: e.message })
     }
   })
@@ -93,6 +98,7 @@ export function defaultDownloadDir() {
  */
 export function fetchVideoInfo(url) {
   return new Promise((resolve, reject) => {
+    console.log('[Downloader] Fetching video metadata for URL:', url)
     const ytdlp = YT_DLP()
     const args = [
       '--dump-json',
@@ -116,11 +122,13 @@ export function fetchVideoInfo(url) {
 
     proc.on('close', (code) => {
       if (code !== 0) {
+        console.error('[Downloader] Failed to fetch video metadata:', stderr || `exit code ${code}`)
         return reject(new Error(stderr || `yt-dlp exited with code ${code}`))
       }
 
       try {
         const info = JSON.parse(stdout)
+        console.log('[Downloader] Metadata fetched successfully:', info.title)
 
         // Build a simplified format list for the UI
         const videoFormats = []
@@ -205,6 +213,7 @@ function runDownloadAttempt(url, format, saveDir, onProgress) {
 
     args.push(url)
 
+    console.log(`[Downloader] Spawning download process: URL="${url}", Format="${format?.id || format?.label}", Dest="${outputTemplate}"`)
     const proc = spawn(ytdlp, args, { windowsHide: true })
 
     let lastFilename = ''
@@ -260,6 +269,7 @@ function runDownloadAttempt(url, format, saveDir, onProgress) {
 
     proc.on('close', (code) => {
       if (code !== 0) {
+        console.error('[Downloader] Download failed with code:', code, stderr)
         return reject(new Error(stderr || `yt-dlp exited with code ${code}`))
       }
 
@@ -276,15 +286,20 @@ function runDownloadAttempt(url, format, saveDir, onProgress) {
             fs.renameSync(lastFilename, finalPath)
           } catch {
             // If rename fails, just use original path
+            console.log('[Downloader] Download completed successfully:', lastFilename)
             return resolve(lastFilename)
           }
+          console.log('[Downloader] Download completed and sanitized:', finalPath)
           return resolve(finalPath)
         }
+        console.log('[Downloader] Download completed successfully:', lastFilename)
         return resolve(lastFilename)
       }
 
       // Fallback — construct expected path
-      resolve(path.join(saveDir, `download.${ext}`))
+      const fallbackTarget = path.join(saveDir, `download.${ext}`)
+      console.log('[Downloader] Download completed (fallback path):', fallbackTarget)
+      resolve(fallbackTarget)
     })
 
     proc.on('error', (err) => {

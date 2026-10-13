@@ -52,10 +52,12 @@ export function registerIpcHandlers() {
 
   // ── Fetch video info ──────────────────────────────────────
   ipcMain.handle('fetch-info', async (_event, url) => {
+    console.log('[IPC] fetch-info invoked for URL:', url)
     try {
       const info = await fetchVideoInfo(url)
       return { success: true, data: info }
     } catch (err) {
+      console.error('[IPC] fetch-info error:', err.message)
       return { success: false, error: err.message }
     }
   })
@@ -63,6 +65,7 @@ export function registerIpcHandlers() {
   // ── Start download ────────────────────────────────────────
   ipcMain.handle('start-download', async (event, { url, format }) => {
     const saveDir = store.get('downloadFolder') || defaultDownloadDir()
+    console.log('[IPC] start-download invoked:', { url, format: format?.id, saveDir })
 
     try {
       const filePath = await downloadMedia(url, format, saveDir, (progress) => {
@@ -73,8 +76,10 @@ export function registerIpcHandlers() {
       // Store the preferred format for next time
       store.set('preferredFormat', format.id)
 
+      console.log('[IPC] start-download finished successfully:', filePath)
       return { success: true, filePath }
     } catch (err) {
+      console.error('[IPC] start-download failed:', err.message)
       return { success: false, error: err.message }
     }
   })
@@ -82,11 +87,11 @@ export function registerIpcHandlers() {
   // ── Open folder containing the downloaded file ────────────
   ipcMain.handle('open-folder', async (_event, filePath) => {
     if (filePath) {
-      // Reveal the specific file in Explorer
+      console.log('[IPC] Revealing item in folder:', filePath)
       shell.showItemInFolder(filePath)
     } else {
-      // Open the downloads folder
       const folder = store.get('downloadFolder') || defaultDownloadDir()
+      console.log('[IPC] Opening download directory:', folder)
       shell.openPath(folder)
     }
   })
@@ -102,6 +107,7 @@ export function registerIpcHandlers() {
 
     if (!result.canceled && result.filePaths.length > 0) {
       const chosen = result.filePaths[0]
+      console.log('[IPC] Download folder updated to:', chosen)
       store.set('downloadFolder', chosen)
       return { success: true, folder: chosen }
     }
@@ -120,6 +126,7 @@ export function registerIpcHandlers() {
 
   // ── Settings: Set ─────────────────────────────────────────
   ipcMain.handle('settings:set', async (_event, { key, value }) => {
+    console.log(`[IPC] Setting updated: ${key} =`, value)
     store.set(key, value)
     return { success: true }
   })
@@ -131,6 +138,7 @@ export function registerIpcHandlers() {
 
   // ── Update Extractor Binary (yt-dlp) ──────────────────────
   ipcMain.handle('update-ytdlp', async () => {
+    console.log('[IPC] Extractor update requested')
     return await updateYtDlp()
   })
 }
