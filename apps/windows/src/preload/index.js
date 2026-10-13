@@ -44,6 +44,8 @@ contextBridge.exposeInMainWorld('grabbit', {
 
   // ── Auto Updater ───────────────────────────────────────────
   checkForUpdates: () => ipcRenderer.send('updater:check'),
+  installUpdate: () => ipcRenderer.send('updater:install'),
+  updateExtractor: () => ipcRenderer.invoke('update-ytdlp'),
   onUpdaterStatus: (callback) => {
     const handler = (_event, status, info) => callback(status, info)
     ipcRenderer.on('updater:status', handler)

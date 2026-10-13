@@ -8,7 +8,7 @@
 import { ipcMain, dialog, shell, BrowserWindow, app } from 'electron'
 import path from 'path'
 import Store from 'electron-store'
-import { fetchVideoInfo, downloadMedia, defaultDownloadDir } from './downloader.js'
+import { fetchVideoInfo, downloadMedia, defaultDownloadDir, updateYtDlp } from './downloader.js'
 
 // ─── Persistent Settings ───────────────────────────────────────
 const store = new Store({
@@ -129,4 +129,8 @@ export function registerIpcHandlers() {
     return app.getVersion()
   })
 
+  // ── Update Extractor Binary (yt-dlp) ──────────────────────
+  ipcMain.handle('update-ytdlp', async () => {
+    return await updateYtDlp()
+  })
 }

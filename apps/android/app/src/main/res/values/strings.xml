@@ -1,0 +1,6 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">Grabbit</string>
+    <string name="title_activity_main">Grabbit</string>
+    <string name="package_name">com.grabbit.app</string>
+</resources>

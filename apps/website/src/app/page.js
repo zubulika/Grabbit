@@ -182,18 +182,23 @@ export default function Home() {
                     </div>
 
                     {/* Android Link */}
-                    <div 
-                      className="flex items-center justify-between p-2 rounded-gb-sm border border-transparent opacity-60 select-none"
+                    <a 
+                      href="#downloads" 
+                      onClick={(e) => {
+                        setIsDropdownOpen(false);
+                        handleScrollTo(e, 'downloads');
+                      }}
+                      className="flex items-center justify-between p-2 rounded-gb-sm hover:bg-gb-surface-light border border-transparent hover:border-white/5 transition-all group"
                     >
                       <div className="flex items-center gap-2.5">
                         <PlatformIcon platform="android" />
                         <div className="text-left">
                           <p className="text-xs font-bold text-white leading-none">Android</p>
-                          <p className="text-[9px] text-gb-text-muted mt-0.5">Coming Soon</p>
+                          <p className="text-[9px] text-gb-text-muted mt-0.5">APK Package</p>
                         </div>
                       </div>
-                      <span className="px-1.5 py-0.5 rounded-full text-[8px] font-bold bg-white/5 text-gb-text-muted uppercase">Soon</span>
-                    </div>
+                      <span className="px-1.5 py-0.5 rounded-full text-[8px] font-bold bg-gb-accent/15 text-gb-accent uppercase">v1.0.0</span>
+                    </a>
                   </div>
                 </div>
               </div>
@@ -437,23 +442,24 @@ export default function Home() {
           </div>
 
           {/* Android Platform Card */}
-          <div className="p-6 rounded-gb bg-gb-surface border border-gb-border flex flex-col justify-between opacity-60 select-none">
+          <div className="p-6 rounded-gb bg-gb-surface border border-gb-border flex flex-col justify-between hover:border-gb-accent/30 transition-all group">
             <div>
               <div className="flex items-center gap-2 mb-4">
                 <PlatformIcon platform="android" />
-                <span className="text-[10px] text-gb-text-muted font-bold uppercase tracking-wider">Android App</span>
+                <span className="text-[10px] text-gb-text-muted font-bold uppercase tracking-wider">Android 8.0+</span>
               </div>
-              <h3 className="font-display font-bold text-base text-white mb-2">Android</h3>
+              <h3 className="font-display font-bold text-base text-white mb-2">Android APK</h3>
               <p className="text-gb-text-muted text-xs leading-relaxed mb-6">
-                Mobile companion package designed for ARM architectures and standard Android package installations.
+                Native package with in-app auto-updates. Directly installable on ARM and modern Android smartphones.
               </p>
             </div>
-            <button 
-              disabled
-              className="w-full py-3 bg-white/5 text-gb-text-muted text-center text-xs font-bold rounded-gb border border-white/5 cursor-not-allowed"
+            <a 
+              href="https://github.com/zubulika/Grabbit/releases/latest/download/Grabbit.apk"
+              className="w-full py-3 bg-gb-accent hover:bg-gb-accent-hover text-white text-center text-xs font-bold rounded-gb transition-all flex items-center justify-center gap-2 cursor-pointer shadow-lg shadow-gb-accent/10"
+              id="download-android"
             >
-              Coming Soon
-            </button>
+              Download APK
+            </a>
           </div>
         </div>
       </section>

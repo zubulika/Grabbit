@@ -14,7 +14,7 @@ class BuildApp:
     def __init__(self, root):
         self.root = root
         self.root.title("Grabbit Builder")
-        self.root.geometry("750x550")
+        self.root.geometry("750x640")
         self.root.configure(bg="#0f0f0f")
         
         # Grid weights to make it responsive
@@ -80,7 +80,7 @@ class BuildApp:
         config_frame.grid(row=1, column=0, padx=20, pady=(0, 10), sticky="nsew")
         config_frame.columnconfigure(0, weight=1)
         config_frame.columnconfigure(1, weight=1)
-        config_frame.rowconfigure(2, weight=1)
+        config_frame.rowconfigure(4, weight=1)
 
         # Version field
         ver_lbl = ttk.Label(config_frame, text="Application Version:", style="Normal.TLabel")
@@ -126,27 +126,34 @@ class BuildApp:
         self.patch_spin.grid(row=0, column=4, padx=2)
 
         # Start Build Button (styled manually for dark theme red hover)
-        self.build_btn = tk.Button(config_frame, text="Start Build Process", bg=self.accent_color, fg=self.text_color,
+        self.build_btn = tk.Button(config_frame, text="Start Local Build", bg=self.accent_color, fg=self.text_color,
                                    activebackground="#cc0000", activeforeground=self.text_color,
                                    font=("Segoe UI", 10, "bold"), bd=0, relief="flat", cursor="hand2",
                                    command=self.start_build, height=2)
-        self.build_btn.grid(row=1, column=0, sticky="ew", pady=(5, 15), padx=(0, 5))
+        self.build_btn.grid(row=1, column=0, sticky="ew", pady=(5, 8), padx=(0, 5))
 
         # Copy Error Logs Button
         self.copy_btn = tk.Button(config_frame, text="Copy Error Logs", bg="#2a2a2a", fg=self.text_color,
                                   activebackground="#3a3a3a", activeforeground=self.text_color,
                                   font=("Segoe UI", 10, "bold"), bd=0, relief="flat", cursor="hand2",
                                   command=self.copy_error_logs, height=2)
-        self.copy_btn.grid(row=1, column=1, sticky="ew", pady=(5, 15), padx=(5, 0))
+        self.copy_btn.grid(row=1, column=1, sticky="ew", pady=(5, 8), padx=(5, 0))
+
+        # Tag & Release to GitHub CI/CD Button
+        self.release_btn = tk.Button(config_frame, text="🚀 Tag & Publish to GitHub Release (CI/CD)", bg="#1e3a8a", fg=self.text_color,
+                                     activebackground="#2563eb", activeforeground=self.text_color,
+                                     font=("Segoe UI", 10, "bold"), bd=0, relief="flat", cursor="hand2",
+                                     command=self.confirm_and_release, height=2)
+        self.release_btn.grid(row=2, column=0, columnspan=2, sticky="ew", pady=(0, 12))
 
         # Log Output Label
-        log_lbl = ttk.Label(config_frame, text="Build Output Logs:", style="Normal.TLabel")
-        log_lbl.grid(row=2, column=0, columnspan=2, sticky="w", pady=(0, 5))
+        log_lbl = ttk.Label(config_frame, text="Build & Release Output Logs:", style="Normal.TLabel")
+        log_lbl.grid(row=3, column=0, columnspan=2, sticky="w", pady=(0, 5))
 
         # Log Scrolled Textbox (manually styled)
         log_container = tk.Frame(config_frame, bg=self.bg_color, bd=1, relief="flat", 
                                  highlightbackground=self.border_color, highlightthickness=1)
-        log_container.grid(row=3, column=0, columnspan=2, sticky="nsew")
+        log_container.grid(row=4, column=0, columnspan=2, sticky="nsew")
         log_container.columnconfigure(0, weight=1)
         log_container.rowconfigure(0, weight=1)
 
@@ -230,6 +237,8 @@ class BuildApp:
 
         self.is_building = True
         self.build_btn.config(state="disabled", bg="#3a3a3a", text="Building...")
+        self.release_btn.config(state="disabled", bg="#202020", text="Build in Progress...")
+        self.copy_btn.config(state="disabled")
         self.major_spin.config(state="disabled")
         self.minor_spin.config(state="disabled")
         self.patch_spin.config(state="disabled")
@@ -245,6 +254,117 @@ class BuildApp:
         self.build_thread = threading.Thread(target=self.run_build_process)
         self.build_thread.daemon = True
         self.build_thread.start()
+
+    def confirm_and_release(self):
+        if self.is_building:
+            return
+
+        try:
+            major = int(self.major_spin.get())
+            minor = int(self.minor_spin.get())
+            patch = int(self.patch_spin.get())
+        except ValueError:
+            messagebox.showerror("Error", "Version components must be integers.")
+            return
+
+        new_version = f"{major}.{minor}.{patch}"
+        tag = f"v{new_version}"
+
+        confirm = messagebox.askyesno(
+            "Confirm GitHub Release",
+            f"Are you sure you want to release {tag} to GitHub?\n\n"
+            f"This will:\n"
+            f"1. Update package.json to {new_version}\n"
+            f"2. Commit changes to git\n"
+            f"3. Create git tag '{tag}'\n"
+            f"4. Push '{tag}' to GitHub origin\n\n"
+            f"GitHub Actions CI/CD will immediately build GrabbitSetup.exe and publish the release with changelog!"
+        )
+        if not confirm:
+            return
+
+        self.is_building = True
+        self.build_btn.config(state="disabled", bg="#3a3a3a")
+        self.release_btn.config(state="disabled", bg="#3a3a3a", text="Publishing to GitHub...")
+        self.copy_btn.config(state="disabled")
+        self.major_spin.config(state="disabled")
+        self.minor_spin.config(state="disabled")
+        self.patch_spin.config(state="disabled")
+        self.log_txt.delete("1.0", tk.END)
+
+        self.build_thread = threading.Thread(target=self.run_git_release_process, args=(tag, new_version))
+        self.build_thread.daemon = True
+        self.build_thread.start()
+
+    def run_git_release_process(self, tag, version):
+        self.write_log(f"Initiating GitHub CI/CD Release for {tag}...\n")
+        self.write_log("=" * 60 + "\n")
+
+        # 1. Update package.json
+        if not self.update_package_version(version):
+            self.root.after(0, lambda: messagebox.showerror("Error", "Failed to update package.json version."))
+            self.root.after(0, self.reset_build_ui)
+            return
+
+        def run_cmd(command):
+            self.write_log(f"> {command}\n")
+            res = subprocess.run(command, shell=True, cwd=WORKSPACE_DIR, capture_output=True, text=True)
+            if res.stdout:
+                self.write_log(res.stdout)
+            if res.stderr:
+                self.write_log(res.stderr)
+            return res.returncode
+
+        try:
+            # 2. Stage package.json and commit
+            run_cmd(f'git add "{PACKAGE_JSON_PATH}"')
+            run_cmd(f'git commit -m "chore(release): bump windows app version to {tag}"')
+
+            # 3. Check if tag exists locally and delete or recreate
+            check_tag = subprocess.run(f"git tag -l {tag}", shell=True, cwd=WORKSPACE_DIR, capture_output=True, text=True)
+            if tag in check_tag.stdout.split():
+                self.write_log(f"Tag {tag} already exists locally. Recreating...\n")
+                run_cmd(f"git tag -d {tag}")
+
+            # 4. Create annotated tag
+            if run_cmd(f'git tag -a {tag} -m "Release {tag}"') != 0:
+                self.write_log("Failed to create git tag.\n")
+                self.root.after(0, lambda: messagebox.showerror("Failure", f"Failed to create git tag {tag}."))
+                return
+
+            # 5. Push branch and tag to GitHub
+            self.write_log("Pushing commit and tag to GitHub...\n")
+            push_res = run_cmd(f"git push origin {tag}")
+            run_cmd("git push origin main")
+
+            self.write_log("=" * 60 + "\n")
+            if push_res == 0:
+                self.write_log(f"✅ Successfully pushed tag {tag} to GitHub!\n")
+                self.write_log("GitHub Actions CI/CD has been triggered.\n")
+                self.write_log("Monitor your build at: https://github.com/zubulika/Grabbit/actions\n")
+                self.root.after(0, lambda: messagebox.showinfo(
+                    "Release Dispatched",
+                    f"Successfully triggered GitHub Actions CI/CD for {tag}!\n\n"
+                    f"GitHub will build GrabbitSetup.exe and publish the release automatically."
+                ))
+            else:
+                self.write_log("❌ Failed to push tag to GitHub. Check your network or git remote permissions.\n")
+                self.root.after(0, lambda: messagebox.showerror("Push Failed", "Failed to push git tag to origin."))
+
+        except Exception as e:
+            self.write_log(f"Exception during release: {e}\n")
+            self.root.after(0, lambda: messagebox.showerror("Error", f"Release process failed: {e}"))
+        finally:
+            self.root.after(0, self.reset_build_ui)
+
+    def reset_build_ui(self):
+        self.is_building = False
+        self.build_btn.config(state="normal", bg=self.accent_color, text="Start Local Build")
+        self.release_btn.config(state="normal", bg="#1e3a8a", text="🚀 Tag & Publish to GitHub Release (CI/CD)")
+        self.copy_btn.config(state="normal")
+        self.major_spin.config(state="normal")
+        self.minor_spin.config(state="normal")
+        self.patch_spin.config(state="normal")
 
     def run_build_process(self):
         self.write_log("Starting build process...\n")

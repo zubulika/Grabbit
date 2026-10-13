@@ -1,6 +1,6 @@
 {
   "name": "windows",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A modern YouTube & multi-platform video/audio downloader",
   "main": "./out/main/index.js",
   "author": "Grabbit",
@@ -60,7 +60,6 @@
       }
     ],
     "win": {
-      "publisherName": "Grabbit",
       "target": [
         {
           "target": "nsis",

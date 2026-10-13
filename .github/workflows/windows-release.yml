@@ -1,0 +1,207 @@
+name: Build & Release Windows App
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      release_tag:
+        description: 'Tag name for manual release (e.g. v1.0.0)'
+        required: false
+        default: 'latest'
+      is_draft:
+        description: 'Create as draft release'
+        type: boolean
+        required: false
+        default: false
+      is_prerelease:
+        description: 'Mark as pre-release'
+        type: boolean
+        required: false
+        default: false
+      custom_notes:
+        description: 'Optional custom release notes prefix'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    name: Build Windows EXE & Release
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Determine Target Version
+        id: version_step
+        shell: pwsh
+        run: |
+          $ref = "${{ github.ref_name }}"
+          $inputTag = "${{ inputs.release_tag }}"
+          
+          if ($ref -and $ref -ne "main" -and $ref -ne "master") {
+            $tag = $ref
+          } elseif ($inputTag -and $inputTag -ne "latest") {
+            $tag = $inputTag
+          } else {
+            $pkg = Get-Content "apps/windows/package.json" -Raw | ConvertFrom-Json
+            $tag = "v$($pkg.version)"
+          }
+          
+          $cleanVersion = $tag.TrimStart('v')
+          Write-Host "Resolved release tag: $tag (Version: $cleanVersion)"
+          "TAG=$tag" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          "VERSION=$cleanVersion" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: Sync package.json Version
+        shell: pwsh
+        run: |
+          $ver = "${{ steps.version_step.outputs.VERSION }}"
+          $pkgPath = "apps/windows/package.json"
+          $pkg = Get-Content $pkgPath -Raw | ConvertFrom-Json
+          $pkg.version = $ver
+          $pkg | ConvertTo-Json -Depth 10 | Set-Content $pkgPath
+          Write-Host "Synchronized $pkgPath version to $ver"
+
+      - name: Install Dependencies
+        run: npm ci || npm install
+
+      - name: Prepare Bundled Binaries (yt-dlp & FFmpeg)
+        shell: pwsh
+        run: |
+          $binDir = "apps/windows/resources/bin"
+          New-Item -ItemType Directory -Force -Path $binDir | Out-Null
+          
+          Write-Host "Downloading yt-dlp.exe..."
+          curl.exe -L "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe" -o "$binDir/yt-dlp.exe"
+          
+          Write-Host "Resolving FFmpeg..."
+          $ffmpegCmd = Get-Command ffmpeg -ErrorAction SilentlyContinue
+          if ($ffmpegCmd) {
+            $ffmpegPath = $ffmpegCmd.Source
+            Write-Host "Using pre-installed FFmpeg from: $ffmpegPath"
+            Copy-Item $ffmpegPath "$binDir/ffmpeg.exe" -Force
+          } else {
+            Write-Host "Installing FFmpeg via chocolatey..."
+            choco install ffmpeg --no-progress -y
+            $ffmpegCmd = Get-Command ffmpeg
+            Copy-Item $ffmpegCmd.Source "$binDir/ffmpeg.exe" -Force
+          }
+          
+          # Verify both binaries exist and are non-empty
+          $ytDlp = Get-Item "$binDir/yt-dlp.exe"
+          $ffmpeg = Get-Item "$binDir/ffmpeg.exe"
+          
+          Write-Host "yt-dlp: $($ytDlp.Length) bytes"
+          Write-Host "ffmpeg: $($ffmpeg.Length) bytes"
+          
+          if ($ytDlp.Length -lt 1000000 -or $ffmpeg.Length -lt 1000000) {
+            Write-Error "Engine binaries appear corrupted or incomplete!"
+            exit 1
+          }
+
+      - name: Build Electron App for Windows
+        run: npm run build:win -w apps/windows
+        env:
+          ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES: 'true'
+
+      - name: Prepare & Verify Release Assets
+        id: stage_assets
+        shell: pwsh
+        run: |
+          $dist = "apps/windows/dist"
+          $tag = "${{ steps.version_step.outputs.TAG }}"
+          $setupExe = "$dist/GrabbitSetup.exe"
+          
+          if (-not (Test-Path $setupExe)) {
+            Write-Error "Build artifact GrabbitSetup.exe not found in $dist!"
+            exit 1
+          }
+          
+          # Create version-stamped copy for direct user downloads
+          $versionedExe = "$dist/GrabbitSetup-$tag.exe"
+          Copy-Item $setupExe $versionedExe -Force
+          
+          # Compute SHA-256 Checksum
+          $hash = (Get-FileHash $setupExe -Algorithm SHA256).Hash
+          $checksumFile = "$dist/SHA256SUMS.txt"
+          "$hash  GrabbitSetup.exe" | Out-File -FilePath $checksumFile -Encoding utf8
+          "$hash  GrabbitSetup-$tag.exe" | Out-File -FilePath $checksumFile -Append -Encoding utf8
+          
+          Write-Host "Installer SHA256: $hash"
+          "INSTALLER_HASH=$hash" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+          
+          Get-ChildItem -Path $dist
+
+      - name: Upload Artifacts to GitHub Action Run
+        uses: actions/upload-artifact@v4
+        with:
+          name: Grabbit-Windows-${{ steps.version_step.outputs.TAG }}
+          path: |
+            apps/windows/dist/GrabbitSetup.exe
+            apps/windows/dist/GrabbitSetup-*.exe
+            apps/windows/dist/GrabbitSetup.exe.blockmap
+            apps/windows/dist/latest.yml
+            apps/windows/dist/SHA256SUMS.txt
+          retention-days: 14
+
+      - name: Prepare Release Notes Header
+        id: release_notes
+        shell: pwsh
+        run: |
+          $tag = "${{ steps.version_step.outputs.TAG }}"
+          $hash = "${{ steps.stage_assets.outputs.INSTALLER_HASH }}"
+          $customNotes = "${{ inputs.custom_notes }}"
+          
+          $header = @"
+## 🚀 Grabbit Windows $tag
+
+$(if ($customNotes) { "$customNotes`n" } else { "" })
+### 📦 Downloads & Assets
+| Asset | Description |
+|---|---|
+| **[GrabbitSetup.exe](https://github.com/zubulika/Grabbit/releases/download/$tag/GrabbitSetup.exe)** | Standard Windows x64 Installer (Recommended) |
+| **[GrabbitSetup-$tag.exe](https://github.com/zubulika/Grabbit/releases/download/$tag/GrabbitSetup-$tag.exe)** | Version-stamped standalone installer |
+| **latest.yml** & **.blockmap** | Electron Auto-updater differential assets |
+
+### 🔒 Checksums (SHA-256)
+```
+$hash  GrabbitSetup.exe
+```
+
+---
+"@
+          $header | Out-File -FilePath "release_notes.md" -Encoding utf8
+          "NOTES_FILE=release_notes.md" | Out-File -FilePath $env:GITHUB_OUTPUT -Append
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v2
+        if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
+        with:
+          tag_name: ${{ steps.version_step.outputs.TAG }}
+          name: "Grabbit Windows ${{ steps.version_step.outputs.TAG }}"
+          body_path: release_notes.md
+          generate_release_notes: true
+          draft: ${{ inputs.is_draft || false }}
+          prerelease: ${{ inputs.is_prerelease || false }}
+          files: |
+            apps/windows/dist/GrabbitSetup.exe
+            apps/windows/dist/GrabbitSetup-*.exe
+            apps/windows/dist/GrabbitSetup.exe.blockmap
+            apps/windows/dist/latest.yml
+            apps/windows/dist/SHA256SUMS.txt
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

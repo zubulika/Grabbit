@@ -10,6 +10,7 @@ import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import { autoUpdater } from 'electron-updater'
 import { registerIpcHandlers } from './ipc.js'
+import { updateYtDlp } from './downloader.js'
 
 /** Keep a global reference so the window isn't garbage-collected */
 let mainWindow = null
@@ -86,55 +87,104 @@ app.whenReady().then(() => {
   // ─── Auto Updater Configuration ──────────────────────────────────
   autoUpdater.logger = console
   autoUpdater.autoDownload = true // Automatically download update in background
+  autoUpdater.autoInstallOnAppQuit = true // Automatically install when user exits
+  autoUpdater.autoRunAppAfterInstall = true
+
+  // Open-source / GitHub unsigned release compatibility
+  if (process.platform === 'win32') {
+    autoUpdater.verifyUpdateCodeSignature = false
+  }
+
+  // Explicitly point to the GitHub repository feed
+  try {
+    autoUpdater.setFeedURL({
+      provider: 'github',
+      owner: 'zubulika',
+      repo: 'Grabbit'
+    })
+  } catch (err) {
+    console.warn('[Grabbit Update] Could not set feed URL:', err.message)
+  }
   
   autoUpdater.on('checking-for-update', () => {
     console.log('[Grabbit Update] Checking for update...')
-    if (mainWindow) mainWindow.webContents.send('updater:status', 'checking')
+    if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('updater:status', 'checking')
   })
   autoUpdater.on('update-available', (info) => {
-    console.log('[Grabbit Update] Update available:', info.version)
-    if (mainWindow) mainWindow.webContents.send('updater:status', 'available', info.version)
+    console.log('[Grabbit Update] Update available:', info?.version)
+    if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('updater:status', 'available', info?.version)
   })
   autoUpdater.on('update-not-available', (info) => {
-    console.log('[Grabbit Update] Update not available:', info ? info.version : '')
-    if (mainWindow) mainWindow.webContents.send('updater:status', 'not-available')
+    console.log('[Grabbit Update] Up to date:', info?.version || '')
+    if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('updater:status', 'not-available', info?.version)
   })
   autoUpdater.on('error', (err) => {
     console.error('[Grabbit Update] Error in auto-updater:', err)
-    if (mainWindow) mainWindow.webContents.send('updater:status', 'error', err.message)
+    if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('updater:status', 'error', err?.message || String(err))
   })
   autoUpdater.on('download-progress', (progressObj) => {
-    console.log(`[Grabbit Update] Download speed: ${progressObj.bytesPerSecond} - Downloaded ${progressObj.percent}%`)
-    if (mainWindow) mainWindow.webContents.send('updater:progress', progressObj.percent)
+    const percent = Math.round(progressObj.percent)
+    console.log(`[Grabbit Update] Progress: ${percent}% (${progressObj.bytesPerSecond} B/s)`)
+    if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('updater:progress', percent)
   })
   autoUpdater.on('update-downloaded', (info) => {
-    console.log('[Grabbit Update] Update downloaded; will install on restart.')
-    if (mainWindow) mainWindow.webContents.send('updater:status', 'downloaded', info.version)
+    console.log('[Grabbit Update] Update downloaded; ready to install:', info?.version)
+    if (mainWindow && !mainWindow.isDestroyed()) mainWindow.webContents.send('updater:status', 'downloaded', info?.version)
     
     // Prompt the user to restart
     dialog.showMessageBox(mainWindow, {
       type: 'info',
-      title: 'Update Ready',
-      message: `A new version (${info.version}) of Grabbit has been downloaded.`,
-      detail: 'Would you like to restart the application to apply the update now?',
-      buttons: ['Restart Now', 'Later'],
+      title: 'Update Ready to Install',
+      message: `Grabbit v${info?.version || ''} has been downloaded.`,
+      detail: 'Restart Grabbit now to apply the update immediately?',
+      buttons: ['Restart & Install', 'Later'],
       defaultId: 0,
       cancelId: 1
     }).then((result) => {
       if (result.response === 0) {
-        autoUpdater.quitAndInstall(true, true)
+        autoUpdater.quitAndInstall(false, true)
       }
-    })
+    }).catch(() => {})
   })
 
   // Handle manual update checks
   ipcMain.on('updater:check', () => {
-    autoUpdater.checkForUpdatesAndNotify()
+    if (is.dev) {
+      console.log('[Grabbit Update] Running in development mode; update check bypassed.')
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('updater:status', 'not-available', 'Dev mode')
+      }
+      return
+    }
+    autoUpdater.checkForUpdatesAndNotify().catch((err) => {
+      console.error('[Grabbit Update] Manual update check error:', err)
+      if (mainWindow && !mainWindow.isDestroyed()) {
+        mainWindow.webContents.send('updater:status', 'error', err.message)
+      }
+    })
+    updateYtDlp().catch((err) => console.error('[Grabbit Update] yt-dlp update error:', err))
   })
 
-  // Start update check in packaged app
+  // Handle immediate install trigger from UI button
+  ipcMain.on('updater:install', () => {
+    console.log('[Grabbit Update] User triggered immediate quit and install.')
+    autoUpdater.quitAndInstall(false, true)
+  })
+
+  // Start background yt-dlp update check so video/audio extractors stay current
+  updateYtDlp().then((res) => {
+    if (res?.output) console.log('[Grabbit Update] yt-dlp binary status:', res.output)
+  }).catch((err) => {
+    console.error('[Grabbit Update] yt-dlp background update failed:', err)
+  })
+
+  // Start update check in packaged app after short delay for UI initialization
   if (!is.dev) {
-    autoUpdater.checkForUpdatesAndNotify()
+    setTimeout(() => {
+      autoUpdater.checkForUpdatesAndNotify().catch((err) => {
+        console.error('[Grabbit Update] Initial update check error:', err)
+      })
+    }, 4000)
   }
 
   app.on('activate', () => {

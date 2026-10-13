@@ -41,3 +41,20 @@ Thumbs.db
 *.exe
 *.msi
 *.dmg
+*.mp4
+*.mp3
+
+# Python & System
+__pycache__/
+*.pyc
+
+# Android Build & Private Configs
+.gradle/
+**/build/
+local.properties
+*.keystore
+
+# Scratch Screenshots
+emulator_*.png
+screen.png
+scratch/

@@ -21,14 +21,54 @@ import fs from 'fs'
 function getBinPath(binaryName) {
   const isPackaged = app.isPackaged
   if (isPackaged) {
-    return path.join(process.resourcesPath, 'bin', binaryName)
+    const packagedPath = path.join(process.resourcesPath, 'bin', binaryName)
+    if (fs.existsSync(packagedPath)) return packagedPath
   }
-  // In ESM, __dirname is not available, we use path.resolve
-  return path.join(process.cwd(), 'resources/bin', binaryName)
+
+  const candidates = [
+    path.join(app.getAppPath(), 'resources', 'bin', binaryName),
+    path.join(process.cwd(), 'resources', 'bin', binaryName),
+    path.join(process.cwd(), 'apps', 'windows', 'resources', 'bin', binaryName),
+    path.join(process.cwd(), 'apps', 'windows', 'dist', 'win-unpacked', 'resources', 'bin', binaryName)
+  ]
+
+  for (const candidate of candidates) {
+    if (fs.existsSync(candidate)) return candidate
+  }
+
+  return candidates[0]
 }
 
 const YT_DLP = () => getBinPath('yt-dlp.exe')
 const FFMPEG = () => getBinPath('ffmpeg.exe')
+
+// ─── Update yt-dlp ─────────────────────────────────────────────
+
+/**
+ * Runs `yt-dlp -U` to update yt-dlp to the latest upstream version.
+ */
+export function updateYtDlp() {
+  return new Promise((resolve) => {
+    try {
+      const ytdlp = YT_DLP()
+      if (!fs.existsSync(ytdlp)) {
+        return resolve({ success: false, error: 'yt-dlp binary not found' })
+      }
+      const proc = spawn(ytdlp, ['-U', '--no-warnings'], { windowsHide: true })
+      let output = ''
+      proc.stdout.on('data', (d) => { output += d.toString() })
+      proc.stderr.on('data', (d) => { output += d.toString() })
+      proc.on('close', (code) => {
+        resolve({ success: code === 0, output: output.trim() })
+      })
+      proc.on('error', (err) => {
+        resolve({ success: false, error: err.message })
+      })
+    } catch (e) {
+      resolve({ success: false, error: e.message })
+    }
+  })
+}
 
 // ─── Filename Sanitiser ────────────────────────────────────────
 
@@ -54,7 +94,13 @@ export function defaultDownloadDir() {
 export function fetchVideoInfo(url) {
   return new Promise((resolve, reject) => {
     const ytdlp = YT_DLP()
-    const args = ['--dump-json', '--no-warnings', url]
+    const args = [
+      '--dump-json',
+      '--no-warnings',
+      '--no-playlist',
+      '--js-runtimes', 'node',
+      url
+    ]
     const proc = spawn(ytdlp, args, { windowsHide: true })
 
     let stdout = ''
@@ -123,16 +169,9 @@ export function fetchVideoInfo(url) {
 // ─── Download Video / Audio ────────────────────────────────────
 
 /**
- * Spawns yt-dlp to download a video/audio.
- *
- * @param {string}   url       – YouTube or Facebook URL
- * @param {object}   format    – { id, type } from fetchVideoInfo
- * @param {string}   saveDir   – Target directory
- * @param {function} onProgress – Called with { percent, speed, eta, filename }
- *
- * @returns {Promise<string>}  – Resolves with the final file path
+ * Internal single-attempt runner for yt-dlp download.
  */
-export function downloadMedia(url, format, saveDir, onProgress) {
+function runDownloadAttempt(url, format, saveDir, onProgress) {
   return new Promise((resolve, reject) => {
     const ytdlp = YT_DLP()
     const ffmpeg = FFMPEG()
@@ -148,7 +187,9 @@ export function downloadMedia(url, format, saveDir, onProgress) {
       '--ffmpeg-location', path.dirname(ffmpeg),
       '--newline', // ensures progress lines end with newline
       '-o', outputTemplate,
-      '--no-warnings'
+      '--no-warnings',
+      '--no-playlist',
+      '--js-runtimes', 'node'
     ]
 
     if (isAudio) {
@@ -250,4 +291,37 @@ export function downloadMedia(url, format, saveDir, onProgress) {
       reject(new Error('Failed to start yt-dlp: ' + err.message))
     })
   })
+}
+
+/**
+ * Spawns yt-dlp to download a video/audio.
+ * Automatically recovers from HTTP 403 Forbidden by updating yt-dlp and retrying once.
+ *
+ * @param {string}   url       – YouTube or Facebook URL
+ * @param {object}   format    – { id, type } from fetchVideoInfo
+ * @param {string}   saveDir   – Target directory
+ * @param {function} onProgress – Called with { percent, speed, eta, filename }
+ * @param {boolean}  isRetry   – Internal retry flag
+ *
+ * @returns {Promise<string>}  – Resolves with the final file path
+ */
+export async function downloadMedia(url, format, saveDir, onProgress, isRetry = false) {
+  try {
+    return await runDownloadAttempt(url, format, saveDir, onProgress)
+  } catch (err) {
+    const is403 = err.message && (err.message.includes('403') || err.message.includes('Forbidden'))
+    if (!isRetry && is403) {
+      console.log('[Downloader] HTTP 403 Forbidden detected. Attempting yt-dlp update and retry...')
+      try {
+        await updateYtDlp()
+        return await downloadMedia(url, format, saveDir, onProgress, true)
+      } catch (retryErr) {
+        throw new Error(
+          'YouTube stream access was restricted (HTTP 403). An automatic extractor update was attempted: ' +
+          retryErr.message
+        )
+      }
+    }
+    throw err
+  }
 }

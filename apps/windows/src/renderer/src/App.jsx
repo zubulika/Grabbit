@@ -22,7 +22,7 @@ const VIEW = {
 }
 
 // ─── Draggable Titlebar Header ──────────────────────────────────
-function Titlebar({ onOpenSettings }) {
+function Titlebar({ onOpenSettings, hasUpdate }) {
   return (
     <div className="titlebar-drag flex items-center justify-between h-8 bg-gb-bg px-3 shrink-0 select-none">
       <div className="flex items-center gap-2 titlebar-no-drag">
@@ -34,13 +34,16 @@ function Titlebar({ onOpenSettings }) {
       <div className="flex items-center titlebar-no-drag mr-[140px]">
         <button
           onClick={onOpenSettings}
-          className="p-1 text-gb-text-dim hover:text-gb-text hover:bg-white/5 rounded transition-colors"
-          title="Settings"
+          className="relative p-1 text-gb-text-dim hover:text-gb-text hover:bg-white/5 rounded transition-colors"
+          title={hasUpdate ? "Settings (Update available)" : "Settings"}
         >
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="12" cy="12" r="3" />
             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z" />
           </svg>
+          {hasUpdate && (
+            <span className="absolute top-0 right-0 w-2 h-2 rounded-full bg-gb-accent ring-2 ring-gb-bg animate-pulse" />
+          )}
         </button>
       </div>
     </div>
@@ -62,6 +65,8 @@ export default function App() {
   const [fetchError, setFetchError] = useState('')
   const [version, setVersion] = useState('1.0.0')
   const [prevView, setPrevView] = useState(VIEW.INPUT)
+  const [updateAvailable, setUpdateAvailable] = useState(null) // null | { status, version, percent }
+  const [dismissUpdateBanner, setDismissUpdateBanner] = useState(false)
 
   const handleOpenSettings = useCallback(() => {
     setPrevView(view)
@@ -80,6 +85,32 @@ export default function App() {
     window.grabbit.getVersion().then((ver) => {
       if (ver) setVersion(ver)
     })
+  }, [])
+
+  // ── Listen for auto-updater events ────────────────────────
+  useEffect(() => {
+    const unsubStatus = window.grabbit.onUpdaterStatus((status, info) => {
+      if (status === 'available') {
+        setUpdateAvailable({ status: 'available', version: info || '', percent: 0 })
+        setDismissUpdateBanner(false)
+      } else if (status === 'downloaded') {
+        setUpdateAvailable({ status: 'downloaded', version: info || '', percent: 100 })
+        setDismissUpdateBanner(false)
+      }
+    })
+
+    const unsubProgress = window.grabbit.onUpdaterProgress((percent) => {
+      setUpdateAvailable((prev) => ({
+        status: 'downloading',
+        version: prev?.version || '',
+        percent: Math.round(percent)
+      }))
+    })
+
+    return () => {
+      unsubStatus()
+      unsubProgress()
+    }
   }, [])
 
   // ── Listen for download progress ──────────────────────────
@@ -168,7 +199,62 @@ export default function App() {
   return (
     <div className="flex flex-col h-full">
 
-      <Titlebar onOpenSettings={handleOpenSettings} />
+      <Titlebar onOpenSettings={handleOpenSettings} hasUpdate={!!updateAvailable} />
+
+      {/* Auto-updater Notification Banner */}
+      {updateAvailable && !dismissUpdateBanner && (
+        <div className="bg-gradient-to-r from-[#18181b] via-[#202024] to-[#18181b] border-b border-gb-accent/30 px-4 py-2 flex items-center justify-between text-xs animate-slide-down shrink-0 shadow-sm z-20">
+          <div className="flex items-center gap-2 text-gb-text">
+            {updateAvailable.status === 'downloaded' ? (
+              <span className="flex h-2 w-2 rounded-full bg-emerald-400" />
+            ) : (
+              <svg className="animate-spin h-3.5 w-3.5 text-gb-accent" fill="none" viewBox="0 0 24 24">
+                <circle className="opacity-20" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" />
+                <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
+              </svg>
+            )}
+            <span>
+              {updateAvailable.status === 'downloaded' ? (
+                <>
+                  <strong className="text-white font-semibold">Grabbit {updateAvailable.version ? `v${updateAvailable.version}` : 'Update'}</strong> is ready to install!
+                </>
+              ) : (
+                <>
+                  Downloading Grabbit update {updateAvailable.version ? `v${updateAvailable.version}` : ''} ({updateAvailable.percent}%)...
+                </>
+              )}
+            </span>
+          </div>
+
+          <div className="flex items-center gap-2">
+            {updateAvailable.status === 'downloaded' ? (
+              <button
+                onClick={() => window.grabbit.installUpdate()}
+                className="px-2.5 py-1 bg-gb-accent hover:bg-gb-accent-hover text-white rounded font-medium text-[11px] transition-all shadow-sm active:scale-95 cursor-pointer flex items-center gap-1"
+              >
+                Restart & Install
+              </button>
+            ) : (
+              <div className="w-20 bg-gb-surface-light h-1.5 rounded-full overflow-hidden">
+                <div
+                  className="bg-gb-accent h-full transition-all duration-300"
+                  style={{ width: `${updateAvailable.percent}%` }}
+                />
+              </div>
+            )}
+            <button
+              onClick={() => setDismissUpdateBanner(true)}
+              className="text-gb-text-dim hover:text-white p-1 rounded transition-colors cursor-pointer"
+              title="Dismiss"
+            >
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="18" y1="6" x2="6" y2="18" />
+                <line x1="6" y1="6" x2="18" y2="18" />
+              </svg>
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Main content area */}
       <main className="flex-1 flex flex-col items-center justify-center px-8 py-6 overflow-hidden">
