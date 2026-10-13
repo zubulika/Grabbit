@@ -225,17 +225,22 @@ jobs:
           curl.exe -L "https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp.exe" -o "$binDir/yt-dlp.exe"
           
           Write-Host "Resolving FFmpeg..."
-          $ffmpegCmd = Get-Command ffmpeg -ErrorAction SilentlyContinue
-          if ($ffmpegCmd) {
-            $ffmpegPath = $ffmpegCmd.Source
-            Write-Host "Using pre-installed FFmpeg from: $ffmpegPath"
-            Copy-Item $ffmpegPath "$binDir/ffmpeg.exe" -Force
-          } else {
+          $realFfmpeg = Get-ChildItem -Path "C:\ProgramData\chocolatey\lib\ffmpeg" -Recurse -Filter "ffmpeg.exe" -ErrorAction SilentlyContinue | Where-Object { $_.Length -gt 20000000 } | Select-Object -First 1
+
+          if (-not $realFfmpeg) {
             Write-Host "Installing FFmpeg via chocolatey..."
             choco install ffmpeg --no-progress -y
-            $ffmpegCmd = Get-Command ffmpeg
-            Copy-Item $ffmpegCmd.Source "$binDir/ffmpeg.exe" -Force
+            $realFfmpeg = Get-ChildItem -Path "C:\ProgramData\chocolatey\lib\ffmpeg" -Recurse -Filter "ffmpeg.exe" -ErrorAction SilentlyContinue | Where-Object { $_.Length -gt 20000000 } | Select-Object -First 1
           }
+
+          if (-not $realFfmpeg) {
+            Write-Host "Fallback: Downloading FFmpeg standalone release..."
+            curl.exe -L "https://github.com/yt-dlp/FFmpeg-Builds/releases/download/latest/ffmpeg-master-latest-win64-gpl.zip" -o "ffmpeg.zip"
+            Expand-Archive -Path "ffmpeg.zip" -DestinationPath "ffmpeg_temp" -Force
+            $realFfmpeg = Get-ChildItem -Path "ffmpeg_temp" -Recurse -Filter "ffmpeg.exe" | Where-Object { $_.Length -gt 20000000 } | Select-Object -First 1
+          }
+
+          Copy-Item $realFfmpeg.FullName "$binDir/ffmpeg.exe" -Force
           
           $ytDlp = Get-Item "$binDir/yt-dlp.exe"
           $ffmpeg = Get-Item "$binDir/ffmpeg.exe"
