@@ -149,14 +149,43 @@ app.whenReady().then(() => {
   })
 
   // Handle manual update checks
-  ipcMain.on('updater:check', () => {
-    if (is.dev) {
-      console.log('[Grabbit Update] Running in development mode; update check bypassed.')
-      if (mainWindow && !mainWindow.isDestroyed()) {
-        mainWindow.webContents.send('updater:status', 'not-available', 'Dev mode')
+  ipcMain.on('updater:check', async () => {
+    console.log('[Grabbit Update] Manual update check requested.')
+    if (mainWindow && !mainWindow.isDestroyed()) {
+      mainWindow.webContents.send('updater:status', 'checking')
+    }
+
+    if (!app.isPackaged) {
+      console.log('[Grabbit Update] Running in development mode; checking GitHub Releases API...')
+      try {
+        const res = await fetch('https://api.github.com/repos/zubulika/Grabbit/releases/latest', {
+          headers: { 'User-Agent': 'Grabbit-Desktop-App' }
+        })
+        if (!res.ok) throw new Error(`GitHub API returned HTTP ${res.status}`)
+        const release = await res.json()
+        const latestTag = (release?.tag_name || '').replace(/^v/, '')
+        const currentVer = app.getVersion()
+
+        console.log(`[Grabbit Update] Local version: ${currentVer}, GitHub release: ${latestTag}`)
+        if (latestTag && latestTag !== currentVer) {
+          if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.webContents.send('updater:status', 'available', latestTag)
+          }
+        } else {
+          if (mainWindow && !mainWindow.isDestroyed()) {
+            mainWindow.webContents.send('updater:status', 'not-available', currentVer)
+          }
+        }
+      } catch (err) {
+        console.warn('[Grabbit Update] Dev check error:', err.message)
+        if (mainWindow && !mainWindow.isDestroyed()) {
+          mainWindow.webContents.send('updater:status', 'not-available', app.getVersion())
+        }
       }
+      updateYtDlp().catch((err) => console.error('[Grabbit Update] yt-dlp update error:', err))
       return
     }
+
     autoUpdater.checkForUpdatesAndNotify().catch((err) => {
       console.error('[Grabbit Update] Manual update check error:', err)
       if (mainWindow && !mainWindow.isDestroyed()) {

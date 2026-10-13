@@ -53,6 +53,11 @@ export default function SettingsPanel({ onClose, downloadFolder, onChooseFolder,
     setUpdaterStatus('checking')
     setUpdaterError('')
     window.grabbit.checkForUpdates()
+
+    // Safety fallback in case of network timeout
+    setTimeout(() => {
+      setUpdaterStatus((cur) => (cur === 'checking' ? 'not-available' : cur))
+    }, 10000)
   };
 
   return (
