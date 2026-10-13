@@ -35,6 +35,8 @@
     "appId": "com.grabbit.app",
     "productName": "Grabbit",
     "copyright": "Copyright © 2026 Grabbit",
+    "npmRebuild": false,
+    "nodeGypRebuild": false,
     "publish": [
       {
         "provider": "github",

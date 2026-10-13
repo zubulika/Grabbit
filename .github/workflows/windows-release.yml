@@ -77,7 +77,10 @@ jobs:
           Write-Host "Synchronized $pkgPath version to $ver"
 
       - name: Install Dependencies
-        run: npm ci || npm install
+        shell: pwsh
+        run: |
+          npm install
+          npm --prefix apps/windows install
 
       - name: Prepare Bundled Binaries (yt-dlp & FFmpeg)
         shell: pwsh
@@ -126,7 +129,11 @@ jobs:
           }
 
       - name: Build Electron App for Windows
-        run: npm run build:win -w apps/windows
+        shell: pwsh
+        working-directory: apps/windows
+        run: |
+          npm run build
+          npx electron-builder --win --publish never
         env:
           ELECTRON_BUILDER_ALLOW_UNRESOLVED_DEPENDENCIES: 'true'
 
