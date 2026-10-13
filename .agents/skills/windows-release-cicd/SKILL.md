@@ -299,25 +299,30 @@ jobs:
           $hash = "${{ steps.stage_assets.outputs.INSTALLER_HASH }}"
           $customNotes = "${{ inputs.custom_notes }}"
           
-          $header = @"
-## 🚀 Grabbit Windows $tag
-
-$(if ($customNotes) { "$customNotes`n" } else { "" })
-### 📦 Downloads & Assets
-| Asset | Description |
-|---|---|
-| **[GrabbitSetup.exe](https://github.com/zubulika/Grabbit/releases/download/$tag/GrabbitSetup.exe)** | Standard Windows x64 Installer (Recommended) |
-| **[GrabbitSetup-$tag.exe](https://github.com/zubulika/Grabbit/releases/download/$tag/GrabbitSetup-$tag.exe)** | Version-stamped standalone installer |
-| **latest.yml** & **.blockmap** | Electron Auto-updater differential assets |
-
-### 🔒 Checksums (SHA-256)
-```
-$hash  GrabbitSetup.exe
-```
-
----
-"@
-          $header | Out-File -FilePath "release_notes.md" -Encoding utf8
+          $lines = @(
+            "## 🚀 Grabbit Windows $tag",
+            ""
+          )
+          if ($customNotes) {
+            $lines += $customNotes
+            $lines += ""
+          }
+          $lines += @(
+            "### 📦 Downloads & Assets",
+            "| Asset | Description |",
+            "|---|---|",
+            "| **[GrabbitSetup.exe](https://github.com/zubulika/Grabbit/releases/download/$tag/GrabbitSetup.exe)** | Standard Windows x64 Installer (Recommended) |",
+            "| **[GrabbitSetup-$tag.exe](https://github.com/zubulika/Grabbit/releases/download/$tag/GrabbitSetup-$tag.exe)** | Version-stamped standalone installer |",
+            "| **latest.yml & .blockmap** | Electron Auto-updater differential assets |",
+            "",
+            "### 🔒 Checksums (SHA-256)",
+            "````",
+            "$hash  GrabbitSetup.exe",
+            "````",
+            "",
+            "---"
+          )
+          $lines -join "`r`n" | Out-File -FilePath "release_notes.md" -Encoding utf8
 
       - name: Publish GitHub Release
         uses: softprops/action-gh-release@v2
