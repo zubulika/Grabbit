@@ -513,7 +513,21 @@ export default function Home() {
 
         {/* Bottom Bar */}
         <div className="pt-8 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4 text-gb-text-muted text-[11px]">
-          <p>&copy; 2026 Grabbit. MIT Licensed. Powered by Grabbit.</p>
+          <div className="flex flex-col sm:flex-row items-center gap-2 sm:gap-3 text-center sm:text-left">
+            <p>&copy; 2026 Grabbit. MIT Licensed.</p>
+            <span className="hidden sm:inline text-white/20">&bull;</span>
+            <p className="text-gb-text-dim">
+              Developed and maintained by{' '}
+              <a
+                href="https://lmlogics.com"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-white hover:text-gb-accent transition-colors font-medium underline underline-offset-2 decoration-white/20 hover:decoration-gb-accent"
+              >
+                LM Logics
+              </a>
+            </p>
+          </div>
           <div className="flex gap-4">
             <a href="https://github.com/zubulika/Grabbit" target="_blank" rel="noopener noreferrer" className="hover:text-white transition-colors">GitHub</a>
             <span>&bull;</span>

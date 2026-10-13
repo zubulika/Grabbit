@@ -56,8 +56,19 @@ export default function AppRoute() {
       </main>
 
       {/* Sleek bottom status bar */}
-      <footer className="h-8 bg-gb-surface border-t border-gb-border flex items-center justify-center text-[9px] text-gb-text-muted select-none tracking-widest uppercase shrink-0 relative z-10">
-        Playground Session — Grabbit Desktop Engine v1.0.0
+      <footer className="h-9 bg-gb-surface border-t border-gb-border flex items-center justify-between px-6 text-[10px] text-gb-text-muted select-none shrink-0 relative z-10">
+        <span className="tracking-widest uppercase text-[9px]">Playground Session &mdash; Grabbit Desktop Engine v1.0.1</span>
+        <span className="text-gb-text-dim">
+          Developed and maintained by{' '}
+          <a
+            href="https://lmlogics.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-white hover:text-gb-accent transition-colors font-medium underline underline-offset-2 decoration-white/20 hover:decoration-gb-accent"
+          >
+            LM Logics
+          </a>
+        </span>
       </footer>
     </div>
   );

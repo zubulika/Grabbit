@@ -3,7 +3,17 @@
   "version": "1.0.1",
   "description": "A modern YouTube & multi-platform video/audio downloader",
   "main": "./out/main/index.js",
-  "author": "Grabbit",
+  "author": {
+    "name": "LM Logics",
+    "url": "https://lmlogics.com"
+  },
+  "maintainers": [
+    {
+      "name": "LM Logics",
+      "url": "https://lmlogics.com"
+    }
+  ],
+  "homepage": "https://lmlogics.com",
   "license": "MIT",
   "scripts": {
     "dev": "electron-vite dev",

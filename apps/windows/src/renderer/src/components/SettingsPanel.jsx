@@ -290,8 +290,19 @@ export default function SettingsPanel({ onClose, downloadFolder, onChooseFolder,
       </div>
 
       {/* Footer */}
-      <div className="text-center text-[10px] text-gb-text-muted mt-2 border-t border-gb-border pt-4">
-        Grabbit is licensed under MIT. © 2026 Grabbit.
+      <div className="text-center text-[10px] text-gb-text-muted mt-2 border-t border-gb-border pt-4 flex flex-col items-center gap-1">
+        <p>Grabbit is licensed under MIT. &copy; 2026 Grabbit.</p>
+        <p className="text-gb-text-dim">
+          Developed and maintained by{' '}
+          <a
+            href="https://lmlogics.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-white hover:text-gb-accent transition-colors font-medium underline underline-offset-2 decoration-white/20 hover:decoration-gb-accent"
+          >
+            LM Logics
+          </a>
+        </p>
       </div>
     </div>
   )

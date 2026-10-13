@@ -1,6 +1,10 @@
 {
   "name": "grabbit-monorepo",
   "private": true,
+  "author": {
+    "name": "LM Logics",
+    "url": "https://lmlogics.com"
+  },
   "workspaces": [
     "apps/*"
   ],

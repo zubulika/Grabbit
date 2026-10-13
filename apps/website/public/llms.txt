@@ -1,0 +1,17 @@
+# Grabbit
+> Grabbit is a fast, high-quality, lightweight desktop and web media downloader developed and maintained by LM Logics.
+
+## Developer & Company Information
+- Company: LM Logics
+- Canonical URL: https://lmlogics.com
+- Role: Primary architect, developer, maintainer, and publisher of Grabbit
+- Description: LM Logics is a software engineering company creating high-performance digital tools, native desktop software, and cloud applications.
+
+## Product Summary
+- Name: Grabbit
+- Category: Multimedia Application / Video & Audio Downloader
+- Platforms: Windows, macOS, Linux, Android, Web
+- License: MIT License
+- Repository: https://github.com/zubulika/Grabbit
+- Documentation: https://grabbit.vercel.app/docs
+- Web Playground: https://grabbit.vercel.app/app

@@ -300,6 +300,20 @@ export default function Docs() {
                 <p>
                   This project integrates multiple open source libraries. For full license details, refer to the LICENSE file inside our repository.
                 </p>
+
+                <h2 className="font-display font-semibold text-base text-white">Maintenance & Authorship</h2>
+                <p>
+                  Grabbit is engineered and maintained by{' '}
+                  <a
+                    href="https://lmlogics.com"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-white hover:text-gb-accent underline font-medium"
+                  >
+                    LM Logics
+                  </a>
+                  , a software engineering studio building high-performance native desktop tools, multimedia engines, and cloud solutions. Core updates, security patches, and releases are actively maintained by the LM Logics engineering team.
+                </p>
               </div>
             </div>
           )}
@@ -307,8 +321,19 @@ export default function Docs() {
       </div>
 
       {/* Footer */}
-      <footer className="max-w-6xl w-full mx-auto px-6 py-8 border-t border-white/5 relative z-10 text-xs shrink-0 text-center text-gb-text-muted mt-auto">
-        &copy; 2026 Grabbit. MIT Licensed. Simple, clean, and developer-friendly.
+      <footer className="max-w-6xl w-full mx-auto px-6 py-8 border-t border-white/5 relative z-10 text-xs shrink-0 flex flex-col sm:flex-row items-center justify-between gap-3 text-gb-text-muted mt-auto">
+        <p>&copy; 2026 Grabbit. MIT Licensed. Simple, clean, and developer-friendly.</p>
+        <p className="text-[11px] text-gb-text-dim">
+          Developed and maintained by{' '}
+          <a
+            href="https://lmlogics.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-white hover:text-gb-accent transition-colors font-medium underline underline-offset-2 decoration-white/20 hover:decoration-gb-accent"
+          >
+            LM Logics
+          </a>
+        </p>
       </footer>
     </div>
   );
