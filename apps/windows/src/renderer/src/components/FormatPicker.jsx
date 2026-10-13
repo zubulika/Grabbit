@@ -24,9 +24,13 @@ function FormatIcon({ type }) {
 
 function getQualityColor(id) {
   switch (id) {
+    case '4320p': return 'bg-amber-500/20 text-amber-300 border border-amber-500/30'
+    case '2160p': return 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+    case '1440p': return 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
     case '1080p': return 'bg-gb-accent/20 text-gb-accent'
     case '720p': return 'bg-yellow-500/20 text-yellow-400'
     case '480p': return 'bg-blue-500/20 text-blue-400'
+    case '360p': return 'bg-zinc-500/20 text-zinc-400'
     case 'audio': return 'bg-purple-500/20 text-purple-400'
     default: return 'bg-gb-surface-light text-gb-text-dim'
   }

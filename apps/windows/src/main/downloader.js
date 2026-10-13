@@ -130,26 +130,54 @@ export function fetchVideoInfo(url) {
         const info = JSON.parse(stdout)
         console.log('[Downloader] Metadata fetched successfully:', info.title)
 
-        // Build a simplified format list for the UI
+        // Build dynamic format list supporting resolutions up to 4K (2160p) and 8K (4320p)
         const videoFormats = []
-        const heights = [1080, 720, 480]
+        const standardHeights = [4320, 2160, 1440, 1080, 720, 480, 360]
 
-        for (const h of heights) {
-          // Check if this resolution is available
-          const match = (info.formats || []).find(
-            (f) => f.height === h && f.vcodec !== 'none'
+        // Extract all available video heights from info.formats
+        const availableHeights = new Set()
+        for (const f of (info.formats || [])) {
+          if (f.height && f.height > 0 && f.vcodec && f.vcodec !== 'none') {
+            availableHeights.add(f.height)
+          }
+        }
+
+        // Match available heights against standard target categories (highest first)
+        for (const targetH of standardHeights) {
+          const hasFormat = Array.from(availableHeights).some(
+            (h) => (h >= targetH - 10 && h <= targetH + 10) || h === targetH
           )
-          if (match) {
+          if (hasFormat) {
+            let label = `${targetH}p MP4`
+            if (targetH >= 4320) label = `4320p (8K UHD - MP4)`
+            else if (targetH >= 2160) label = `2160p (4K UHD - MP4)`
+            else if (targetH >= 1440) label = `1440p (2K QHD - MP4)`
+            else if (targetH >= 1080) label = `1080p (Full HD - MP4)`
+            else if (targetH >= 720) label = `720p (HD - MP4)`
+            else if (targetH >= 480) label = `480p (SD - MP4)`
+            else label = `${targetH}p (SD - MP4)`
+
             videoFormats.push({
-              id: `${h}p`,
-              label: `${h}p MP4`,
-              height: h,
+              id: `${targetH}p`,
+              label,
+              height: targetH,
               type: 'video'
             })
           }
         }
 
-        // Always offer audio-only
+        // Fallback: If no standard height matched but video heights exist, add maximum available
+        if (videoFormats.length === 0 && availableHeights.size > 0) {
+          const maxH = Math.max(...Array.from(availableHeights))
+          videoFormats.push({
+            id: `${maxH}p`,
+            label: `${maxH}p (MP4)`,
+            height: maxH,
+            type: 'video'
+          })
+        }
+
+        // Always offer audio-only (MP3)
         videoFormats.push({
           id: 'audio',
           label: 'Audio Only (MP3)',
@@ -204,10 +232,16 @@ function runDownloadAttempt(url, format, saveDir, onProgress) {
       // Extract audio as MP3
       args.push('-x', '--audio-format', 'mp3', '--audio-quality', '0')
     } else {
-      // Merge best video (up to target height) + best audio into MP4
+      // Ensure downloaded MP4 files are 100% compatible with Adobe Premiere Pro,
+      // DaVinci Resolve, Final Cut Pro, and all media players:
+      // 1. Sort formats to prioritize standard H.264 (avc1) video and AAC (m4a) audio.
+      // 2. If a resolution (like 4K/2160p or 1440p) is only available in VP9/AV1 or Opus,
+      //    --recode-video mp4 guarantees conversion to standard H.264/AAC.
       args.push(
+        '-S', `res:${format.height},vcodec:h264,acodec:m4a`,
         '-f', `bestvideo[height<=${format.height}]+bestaudio/best[height<=${format.height}]`,
-        '--merge-output-format', 'mp4'
+        '--merge-output-format', 'mp4',
+        '--recode-video', 'mp4'
       )
     }
 

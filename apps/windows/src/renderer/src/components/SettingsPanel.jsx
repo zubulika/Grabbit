@@ -96,6 +96,8 @@ export default function SettingsPanel({ onClose, downloadFolder, onChooseFolder,
               onChange={handleFormatChange}
               className="w-full bg-[#212121] border border-gb-border rounded-gb-sm px-3 py-2 text-sm text-gb-text outline-none focus:border-gb-accent/50 appearance-none cursor-pointer"
             >
+              <option value="2160p">2160p (4K UHD - MP4)</option>
+              <option value="1440p">1440p (2K QHD - MP4)</option>
               <option value="1080p">1080p (Full HD - MP4)</option>
               <option value="720p">720p (HD - MP4)</option>
               <option value="480p">480p (SD - MP4)</option>
