@@ -119,7 +119,7 @@ const appJsonLd = {
     "priceCurrency": "USD",
   },
   "description": "A simple, lightning-fast app to download video, audio, and media from the internet. Paste a link and grab your files instantly, with zero configuration required.",
-  "softwareVersion": "1.0.1",
+  "softwareVersion": "1.0.2",
 };
 
 export default function RootLayout({ children }) {

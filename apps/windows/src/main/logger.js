@@ -162,7 +162,7 @@ export function initLogger() {
       'GRABBIT BACKEND SESSION LOG',
       `Session ID    : ${sessionId}`,
       `Started At    : ${formatTimestamp()} (Local) | ${new Date().toISOString()} (UTC)`,
-      `App Version   : ${app?.getVersion ? app.getVersion() : '1.0.1'} (Packaged: ${app?.isPackaged ? 'true' : 'false'})`,
+      `App Version   : ${app?.getVersion ? app.getVersion() : '1.0.2'} (Packaged: ${app?.isPackaged ? 'true' : 'false'})`,
       `Platform      : ${process.platform} (${process.arch})`,
       `Node / Elect  : Node ${process.versions.node} / Electron ${process.versions.electron}`,
       `PID           : ${process.pid}`,

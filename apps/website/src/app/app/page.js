@@ -57,7 +57,7 @@ export default function AppRoute() {
 
       {/* Sleek bottom status bar */}
       <footer className="h-9 bg-gb-surface border-t border-gb-border flex items-center justify-between px-6 text-[10px] text-gb-text-muted select-none shrink-0 relative z-10">
-        <span className="tracking-widest uppercase text-[9px]">Playground Session &mdash; Grabbit Desktop Engine v1.0.1</span>
+        <span className="tracking-widest uppercase text-[9px]">Playground Session &mdash; Grabbit Desktop Engine v1.0.2</span>
         <span className="text-gb-text-dim">
           Developed and maintained by{' '}
           <a

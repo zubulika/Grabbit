@@ -290,7 +290,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 // Reject invalid or non-downloadable links cleanly
                 _currentMetadata.value = null
                 _errorMessage.value = e.localizedMessage
-                    ?: "No downloadable media found at this link. Please enter a valid YouTube or video URL."
+                    ?: "No downloadable media found at this link. Please enter a valid YouTube, YouTube Music, or video URL."
             } finally {
                 _isLoadingMetadata.value = false
             }

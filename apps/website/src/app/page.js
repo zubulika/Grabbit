@@ -150,7 +150,7 @@ export default function Home() {
                           <p className="text-[9px] text-gb-text-muted mt-0.5">Desktop App</p>
                         </div>
                       </div>
-                      <span className="px-1.5 py-0.5 rounded-full text-[8px] font-bold bg-gb-accent/15 text-gb-accent uppercase">v1.0.0</span>
+                      <span className="px-1.5 py-0.5 rounded-full text-[8px] font-bold bg-gb-accent/15 text-gb-accent uppercase">v1.0.2</span>
                     </a>
 
                     {/* macOS Link */}
@@ -197,7 +197,7 @@ export default function Home() {
                           <p className="text-[9px] text-gb-text-muted mt-0.5">APK Package</p>
                         </div>
                       </div>
-                      <span className="px-1.5 py-0.5 rounded-full text-[8px] font-bold bg-gb-accent/15 text-gb-accent uppercase">v1.0.0</span>
+                      <span className="px-1.5 py-0.5 rounded-full text-[8px] font-bold bg-gb-accent/15 text-gb-accent uppercase">v1.0.2</span>
                     </a>
                   </div>
                 </div>

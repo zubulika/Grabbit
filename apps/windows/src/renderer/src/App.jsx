@@ -63,7 +63,7 @@ export default function App() {
   const [downloadFolder, setDownloadFolder] = useState('')
   const [isLoading, setIsLoading] = useState(false)
   const [fetchError, setFetchError] = useState('')
-  const [version, setVersion] = useState('1.0.0')
+  const [version, setVersion] = useState('1.0.2')
   const [prevView, setPrevView] = useState(VIEW.INPUT)
   const [updateAvailable, setUpdateAvailable] = useState(null) // null | { status, version, percent }
   const [dismissUpdateBanner, setDismissUpdateBanner] = useState(false)
@@ -268,7 +268,7 @@ export default function App() {
               </div>
               <h1 className="text-2xl font-bold text-gb-text mb-1">Grabbit</h1>
               <p className="text-sm text-gb-text-muted">
-                Paste a YouTube or Facebook link and download in seconds
+                Paste a YouTube, YouTube Music, or Facebook link and download in seconds
               </p>
             </div>
 

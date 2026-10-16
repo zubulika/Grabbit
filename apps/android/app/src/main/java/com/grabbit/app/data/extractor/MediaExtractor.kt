@@ -37,9 +37,14 @@ object MediaExtractor {
     }
 
     suspend fun extractMediaInfo(rawUrl: String): MediaMetadata = withContext(Dispatchers.IO) {
-        val trimmedUrl = rawUrl.trim()
-        if (trimmedUrl.isBlank() || !trimmedUrl.startsWith("http", ignoreCase = true)) {
-            throw IllegalArgumentException("Please enter a valid web URL starting with http:// or https://")
+        val trimmed = rawUrl.trim()
+        if (trimmed.isBlank()) {
+            throw IllegalArgumentException("Please enter a valid YouTube, YouTube Music, or media URL")
+        }
+        val trimmedUrl = if (!trimmed.startsWith("http://", ignoreCase = true) && !trimmed.startsWith("https://", ignoreCase = true)) {
+            "https://$trimmed"
+        } else {
+            trimmed
         }
 
         // 1. Check YouTube
@@ -95,7 +100,7 @@ object MediaExtractor {
         }
 
         // 4. Reject unsupported non-media links (e.g. google.com, blogs, html pages)
-        throw IllegalArgumentException("No downloadable video or audio stream found at this link. Please enter a valid YouTube or direct media link.")
+        throw IllegalArgumentException("No downloadable video or audio stream found at this link. Please enter a valid YouTube, YouTube Music, or direct media link.")
     }
 
     private fun extractDirectMediaInfo(directUrl: String, extension: String): MediaMetadata {

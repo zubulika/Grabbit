@@ -1,10 +1,11 @@
 import { NextResponse } from 'next/server';
 
 const VALIDATION_PATTERNS = [
-  // YouTube
-  /^https?:\/\/(www\.)?youtube\.com\/watch\?v=[\w-]+/,
+  // YouTube & YouTube Music
+  /^https?:\/\/(?:(?:www|music|m)\.)?youtube\.com\/watch\?(?:[^\s]*&)?v=[\w-]+/,
+  /^https?:\/\/(?:(?:www|music|m)\.)?youtube\.com\/(?:shorts|live)\/[\w-]+/,
+  /^https?:\/\/music\.youtube\.com\/(?:watch\?|playlist\?)[^\s]+/,
   /^https?:\/\/youtu\.be\/[\w-]+/,
-  /^https?:\/\/(www\.)?youtube\.com\/shorts\/[\w-]+/,
   // Facebook
   /^https?:\/\/(?:[\w-]+\.)?facebook\.com\/watch\/?\?v=[\w-]+/,
   /^https?:\/\/(?:[\w-]+\.)?facebook\.com\/reel\/[\w-]+/,
@@ -13,23 +14,34 @@ const VALIDATION_PATTERNS = [
   /^https?:\/\/fb\.watch\/[\w-]+\/?/
 ];
 
+function normalizeUrl(raw) {
+  let u = (raw || '').trim();
+  if (u && !/^https?:\/\//i.test(u)) {
+    u = 'https://' + u;
+  }
+  return u;
+}
+
 function isValidUrl(url) {
-  return VALIDATION_PATTERNS.some((pattern) => pattern.test(url.trim()));
+  const normalized = normalizeUrl(url);
+  return VALIDATION_PATTERNS.some((pattern) => pattern.test(normalized));
 }
 
 export async function GET(request) {
   const { searchParams } = new URL(request.url);
-  const url = searchParams.get('url');
+  const rawUrl = searchParams.get('url');
 
-  if (!url) {
+  if (!rawUrl) {
     return NextResponse.json({ success: false, error: 'URL parameter is required' }, { status: 400 });
   }
 
+  const url = normalizeUrl(rawUrl);
+
   if (!isValidUrl(url)) {
-    return NextResponse.json({ success: false, error: 'Please enter a valid YouTube or Facebook URL' }, { status: 400 });
+    return NextResponse.json({ success: false, error: 'Please enter a valid YouTube, YouTube Music, or Facebook URL' }, { status: 400 });
   }
 
-  // Determine if it is a YouTube URL
+  // Determine if it is a YouTube / YouTube Music URL
   const isYouTube = /youtube\.com|youtu\.be/i.test(url);
 
   try {
