@@ -8,10 +8,8 @@ import android.os.Environment
 import android.webkit.MimeTypeMap
 import android.widget.Toast
 import androidx.core.content.FileProvider
-import com.grabbit.app.R
 import com.grabbit.app.data.model.DownloadTask
 import java.io.File
-import java.io.FileOutputStream
 
 object FileOpener {
 
@@ -67,14 +65,9 @@ object FileOpener {
 
         if (!targetFile.exists() || targetFile.length() == 0L) {
             try {
-                val rawResId = if (isAudio) R.raw.sample_audio else R.raw.sample_video
-                context.resources.openRawResource(rawResId).use { input ->
-                    FileOutputStream(targetFile).use { output ->
-                        input.copyTo(output)
-                    }
-                }
+                targetFile.createNewFile()
             } catch (e: Exception) {
-                targetFile.writeBytes(byteArrayOf(0))
+                // Ignore fallback creation error
             }
         }
 
