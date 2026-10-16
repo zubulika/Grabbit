@@ -268,7 +268,7 @@ export default function App() {
               </div>
               <h1 className="text-2xl font-bold text-gb-text mb-1">Grabbit</h1>
               <p className="text-sm text-gb-text-muted">
-                Paste a YouTube, YouTube Music, or Facebook link and download in seconds
+                Paste any link and download in seconds
               </p>
             </div>
 

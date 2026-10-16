@@ -2,20 +2,6 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 
-const VALIDATION_PATTERNS = [
-  // YouTube & YouTube Music
-  /^https?:\/\/(?:(?:www|music|m)\.)?youtube\.com\/watch\?(?:[^\s]*&)?v=[\w-]+/,
-  /^https?:\/\/(?:(?:www|music|m)\.)?youtube\.com\/(?:shorts|live)\/[\w-]+/,
-  /^https?:\/\/music\.youtube\.com\/(?:watch\?|playlist\?)[^\s]+/,
-  /^https?:\/\/youtu\.be\/[\w-]+/,
-  // Facebook
-  /^https?:\/\/(?:[\w-]+\.)?facebook\.com\/watch\/?\?v=[\w-]+/,
-  /^https?:\/\/(?:[\w-]+\.)?facebook\.com\/reel\/[\w-]+/,
-  /^https?:\/\/(?:[\w-]+\.)?facebook\.com\/[\w.]+\/videos\/[\w-]+/,
-  /^https?:\/\/(?:[\w-]+\.)?facebook\.com\/share\/[vr]\/[\w-]+/,
-  /^https?:\/\/fb\.watch\/[\w-]+\/?/
-];
-
 function normalizeUrl(raw) {
   let u = (raw || '').trim();
   if (u && !/^https?:\/\//i.test(u)) {
@@ -26,7 +12,12 @@ function normalizeUrl(raw) {
 
 function isValidUrl(url) {
   const normalized = normalizeUrl(url);
-  return VALIDATION_PATTERNS.some((pattern) => pattern.test(normalized));
+  try {
+    const parsed = new URL(normalized);
+    return Boolean(parsed.hostname && parsed.hostname.includes('.'));
+  } catch {
+    return false;
+  }
 }
 
 export default function URLInput({ onFetch, isLoading, error }) {
@@ -44,13 +35,13 @@ export default function URLInput({ onFetch, isLoading, error }) {
 
     const trimmed = url.trim();
     if (!trimmed) {
-      setValidationError('Please enter a YouTube, YouTube Music, or Facebook URL');
+      setValidationError('Please enter a link');
       return;
     }
 
     const normalized = normalizeUrl(trimmed);
     if (!isValidUrl(normalized)) {
-      setValidationError('Please enter a valid YouTube, YouTube Music, or Facebook URL');
+      setValidationError('Please enter a valid link or URL');
       return;
     }
 
@@ -105,7 +96,7 @@ export default function URLInput({ onFetch, isLoading, error }) {
               if (validationError) setValidationError('');
             }}
             onPaste={handlePaste}
-            placeholder="Paste YouTube, YouTube Music, or Facebook URL here..."
+            placeholder="Paste any link here..."
             className="flex-1 bg-transparent text-sm text-gb-text placeholder:text-gb-text-muted outline-none"
             disabled={isLoading}
             id="url-input"

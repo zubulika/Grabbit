@@ -14,6 +14,15 @@ function FormatIcon({ type }) {
       </svg>
     )
   }
+  if (type === 'image') {
+    return (
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="text-gb-accent">
+        <rect x="3" y="3" width="18" height="18" rx="2" stroke="currentColor" strokeWidth="1.5" />
+        <circle cx="8.5" cy="8.5" r="1.5" fill="currentColor" />
+        <path d="M21 15l-5-5L5 21" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      </svg>
+    )
+  }
   return (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="text-gb-accent">
       <polygon points="5 3 19 12 5 21 5 3" stroke="currentColor" strokeWidth="1.5"
@@ -31,6 +40,8 @@ function getQualityColor(id) {
     case '720p': return 'bg-yellow-500/20 text-yellow-400'
     case '480p': return 'bg-blue-500/20 text-blue-400'
     case '360p': return 'bg-zinc-500/20 text-zinc-400'
+    case 'best': return 'bg-emerald-500/20 text-emerald-400 border border-emerald-500/30'
+    case 'image': return 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30'
     case 'audio': return 'bg-purple-500/20 text-purple-400'
     default: return 'bg-gb-surface-light text-gb-text-dim'
   }
@@ -91,7 +102,7 @@ export default function FormatPicker({ videoInfo, onSelect, onBack, downloadFold
               <FormatIcon type={fmt.type} />
               <span className="flex-1 text-left text-sm text-gb-text font-medium">{fmt.label}</span>
               <span className={`px-2 py-0.5 text-[10px] font-semibold rounded-full uppercase ${getQualityColor(fmt.id)}`}>
-                {fmt.type === 'audio' ? 'MP3' : 'MP4'}
+                {fmt.type === 'audio' ? 'MP3' : fmt.type === 'image' ? (fmt.ext ? fmt.ext.toUpperCase() : 'IMAGE') : 'MP4'}
               </span>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
                 className={`transition-all duration-200 ${hoveredFormat === fmt.id ? 'text-gb-accent translate-y-0.5' : 'text-gb-text-muted'}`}>

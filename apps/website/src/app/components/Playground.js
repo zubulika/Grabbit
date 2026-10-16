@@ -140,7 +140,7 @@ export default function Playground() {
             </div>
             <h2 className="font-display font-bold text-2xl tracking-tight text-white">Try Grabbit Web</h2>
             <p className="text-sm text-gb-text-muted max-w-sm mx-auto leading-relaxed">
-              Paste a YouTube, YouTube Music, or Facebook link below to try the download manager right inside your browser.
+              Paste any link below to try the download manager right inside your browser.
             </p>
           </div>
 

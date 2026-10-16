@@ -1,7 +1,7 @@
 {
   "name": "windows",
   "version": "1.0.2",
-  "description": "A modern YouTube & multi-platform video/audio downloader",
+  "description": "A modern universal media downloader for any link",
   "main": "./out/main/index.js",
   "author": {
     "name": "LM Logics",

@@ -110,7 +110,7 @@ fun UrlInputCard(
             Box(modifier = Modifier.weight(1f)) {
                 if (url.isEmpty()) {
                     Text(
-                        text = "Paste YouTube or media URL here...",
+                        text = "Paste any link here...",
                         style = TextStyle(color = GbTextMuted, fontSize = 14.sp)
                     )
                 }

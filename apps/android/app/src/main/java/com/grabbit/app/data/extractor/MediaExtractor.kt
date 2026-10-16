@@ -18,7 +18,8 @@ object MediaExtractor {
 
     private val DIRECT_MEDIA_EXTENSIONS = setOf(
         "mp4", "m4v", "mkv", "webm", "mov", "avi", "3gp",
-        "mp3", "m4a", "wav", "aac", "ogg", "flac"
+        "mp3", "m4a", "wav", "aac", "ogg", "flac",
+        "jpg", "jpeg", "png", "webp", "gif", "svg", "bmp", "avif"
     )
 
     fun extractYouTubeId(url: String): String? {
@@ -39,7 +40,7 @@ object MediaExtractor {
     suspend fun extractMediaInfo(rawUrl: String): MediaMetadata = withContext(Dispatchers.IO) {
         val trimmed = rawUrl.trim()
         if (trimmed.isBlank()) {
-            throw IllegalArgumentException("Please enter a valid YouTube, YouTube Music, or media URL")
+            throw IllegalArgumentException("Please enter a valid link or URL")
         }
         val trimmedUrl = if (!trimmed.startsWith("http://", ignoreCase = true) && !trimmed.startsWith("https://", ignoreCase = true)) {
             "https://$trimmed"
@@ -47,7 +48,7 @@ object MediaExtractor {
             trimmed
         }
 
-        // 1. Check YouTube
+        // 1. Check YouTube / YouTube Music
         val videoId = extractYouTubeId(trimmedUrl)
         if (videoId != null) {
             return@withContext YouTubeStreamExtractor.extract(videoId, trimmedUrl)
@@ -60,12 +61,12 @@ object MediaExtractor {
             return@withContext extractDirectMediaInfo(trimmedUrl, ext)
         }
 
-        // 3. Inspect headers for direct video/audio content
+        // 3. Inspect headers for direct video/audio/image content
         try {
             val url = URL(trimmedUrl)
             val connection = url.openConnection() as HttpURLConnection
             connection.requestMethod = "HEAD"
-            connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36")
+            connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36")
             connection.connectTimeout = 8000
             connection.readTimeout = 8000
             connection.instanceFollowRedirects = true
@@ -93,14 +94,89 @@ object MediaExtractor {
                         ext = formatExt,
                         lengthBytes = contentLength
                     )
+                } else if (contentType.startsWith("image/")) {
+                    val formatExt = contentType.substringAfter("image/").substringBefore(";").take(4).ifEmpty { "jpg" }
+                    return@withContext createDirectMetadata(
+                        url = trimmedUrl,
+                        isAudio = false,
+                        ext = formatExt,
+                        lengthBytes = contentLength
+                    )
                 }
             }
         } catch (e: Exception) {
             // Header inspection failed or unsupported
         }
 
-        // 4. Reject unsupported non-media links (e.g. google.com, blogs, html pages)
-        throw IllegalArgumentException("No downloadable video or audio stream found at this link. Please enter a valid YouTube, YouTube Music, or direct media link.")
+        // 4. Fallback for social media pages (Instagram reels, TikTok, web pages) via OpenGraph inspection
+        try {
+            val url = URL(trimmedUrl)
+            val conn = url.openConnection() as HttpURLConnection
+            conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Linux; Android 14) AppleWebKit/537.36")
+            conn.connectTimeout = 8000
+            conn.readTimeout = 8000
+            conn.instanceFollowRedirects = true
+
+            val html = conn.inputStream.bufferedReader().use { reader ->
+                val chars = CharArray(32768)
+                val read = reader.read(chars)
+                if (read > 0) String(chars, 0, read) else ""
+            }
+            conn.disconnect()
+
+            val ogVideoRegex = Regex("<meta[^>]+property=[\"']og:video[\"'][^>]+content=[\"']([^\"']+)[\"']", RegexOption.IGNORE_CASE)
+            val ogVideoSecureRegex = Regex("<meta[^>]+property=[\"']og:video:secure_url[\"'][^>]+content=[\"']([^\"']+)[\"']", RegexOption.IGNORE_CASE)
+            val ogImageRegex = Regex("<meta[^>]+property=[\"']og:image[\"'][^>]+content=[\"']([^\"']+)[\"']", RegexOption.IGNORE_CASE)
+            val ogTitleRegex = Regex("<meta[^>]+property=[\"']og:title[\"'][^>]+content=[\"']([^\"']+)[\"']", RegexOption.IGNORE_CASE)
+
+            val videoStream = ogVideoRegex.find(html)?.groupValues?.get(1)
+                ?: ogVideoSecureRegex.find(html)?.groupValues?.get(1)
+            val imageThumb = ogImageRegex.find(html)?.groupValues?.get(1)
+            val pageTitle = ogTitleRegex.find(html)?.groupValues?.get(1) ?: URL(trimmedUrl).host
+
+            if (!videoStream.isNullOrBlank()) {
+                val format = FormatOption(
+                    id = "reel_stream",
+                    resolution = "Best Quality Stream",
+                    extension = "mp4",
+                    approxSize = "~25 MB",
+                    isBest = true,
+                    isAudioOnly = false,
+                    directStreamUrl = videoStream
+                )
+                return@withContext MediaMetadata(
+                    url = trimmedUrl,
+                    title = pageTitle,
+                    author = URL(trimmedUrl).host,
+                    duration = "--:--",
+                    thumbnailUrl = imageThumb ?: "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600",
+                    availableFormats = listOf(format)
+                )
+            } else if (!imageThumb.isNullOrBlank()) {
+                val format = FormatOption(
+                    id = "image_stream",
+                    resolution = "Original Image",
+                    extension = "jpg",
+                    approxSize = "~5 MB",
+                    isBest = true,
+                    isAudioOnly = false,
+                    directStreamUrl = imageThumb
+                )
+                return@withContext MediaMetadata(
+                    url = trimmedUrl,
+                    title = pageTitle,
+                    author = URL(trimmedUrl).host,
+                    duration = "",
+                    thumbnailUrl = imageThumb,
+                    availableFormats = listOf(format)
+                )
+            }
+        } catch (e: Exception) {
+            // OpenGraph inspection fallback failed
+        }
+
+        // 5. Final fallback
+        throw IllegalArgumentException("No downloadable media found at this link. Please enter a valid URL.")
     }
 
     private fun extractDirectMediaInfo(directUrl: String, extension: String): MediaMetadata {
@@ -129,11 +205,12 @@ object MediaExtractor {
         lengthBytes: Long
     ): MediaMetadata {
         val cleanName = url.substringBefore("?").substringAfterLast("/").ifEmpty { "Media File" }
-        val sizeStr = if (lengthBytes > 0) formatBytes(lengthBytes) else "~40 MB"
+        val sizeStr = if (lengthBytes > 0) formatBytes(lengthBytes) else "~15 MB"
+        val isImage = ext in setOf("jpg", "jpeg", "png", "webp", "gif", "svg", "bmp", "avif")
 
         val formatOption = FormatOption(
             id = "direct_stream",
-            resolution = if (isAudio) "Direct Audio Stream" else "Original Video Stream",
+            resolution = if (isImage) "Original Image (${ext.uppercase(Locale.ROOT)})" else if (isAudio) "Direct Audio Stream" else "Original Video Stream",
             extension = ext,
             approxSize = sizeStr,
             isBest = true,
@@ -144,9 +221,9 @@ object MediaExtractor {
         return MediaMetadata(
             url = url,
             title = cleanName,
-            author = "Direct Media Link",
-            duration = "--:--",
-            thumbnailUrl = "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600",
+            author = URL(url).host,
+            duration = if (isImage) "" else "--:--",
+            thumbnailUrl = if (isImage) url else "https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=600",
             availableFormats = listOf(formatOption)
         )
     }
