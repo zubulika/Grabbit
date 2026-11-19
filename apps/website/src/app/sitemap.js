@@ -1,23 +1,10 @@
+import { platforms } from './platforms';
+import { SITE_URL } from './site-url';
+
 export default function sitemap() {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://grabbit.vercel.app';
   return [
-    {
-      url: `${baseUrl}`,
-      lastModified: new Date(),
-      changeFrequency: 'yearly',
-      priority: 1.0,
-    },
-    {
-      url: `${baseUrl}/app`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-    {
-      url: `${baseUrl}/docs`,
-      lastModified: new Date(),
-      changeFrequency: 'monthly',
-      priority: 0.8,
-    },
-  ];
+    '/',
+    '/docs',
+    ...platforms.map(({ slug }) => `/video-downloader/${slug}`),
+  ].map((path) => ({ url: path === "/" ? SITE_URL : new URL(path, SITE_URL).href }));
 }

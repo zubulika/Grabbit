@@ -1,5 +1,7 @@
+import { SITE_URL } from './site-url';
+
 export default function robots() {
-  const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://grabbit.vercel.app';
+  const baseUrl = SITE_URL;
   return {
     rules: {
       userAgent: '*',

@@ -1,6 +1,9 @@
 "use client";
 
+import Link from 'next/link';
+
 import React, { useState, useEffect } from 'react';
+import { WINDOWS_DOWNLOAD } from '../site-url';
 
 export default function Docs() {
   const [activeSection, setActiveSection] = useState('getting-started');
@@ -29,18 +32,18 @@ export default function Docs() {
       <nav className="fixed top-0 left-0 right-0 z-50 w-full backdrop-blur-md bg-[#0f0f0f]/85 border-b border-white/5 select-none shrink-0">
         <div className="max-w-6xl w-full mx-auto px-6 py-4 flex justify-between items-center">
           {/* Brand logo */}
-          <a href="/" className="flex items-center gap-3 group select-none">
+          <Link href="/" className="flex items-center gap-3 group select-none">
             <div className="w-8 h-8 rounded-xl overflow-hidden flex items-center justify-center bg-gb-accent/5 group-hover:scale-105 transition-transform duration-300">
               <img src="/logo.png" alt="Grabbit Logo" className="w-6 h-6 object-contain" />
             </div>
             <span className="font-display font-bold text-lg tracking-wider uppercase text-white">Grabbit <span className="text-[10px] text-gb-accent tracking-normal font-semibold lowercase align-super ml-1">docs</span></span>
-          </a>
+          </Link>
 
           <div className="flex items-center gap-6">
-            <a href="/" className="text-xs text-gb-text-dim hover:text-white transition-colors uppercase tracking-widest font-semibold">Home</a>
-            <a href="/app" className="bg-gb-accent hover:bg-gb-accent-hover text-white text-xs px-4 py-2 rounded-gb font-bold transition-all shadow-md active:scale-[0.98]">
+            <Link href="/" className="text-xs text-gb-text-dim hover:text-white transition-colors uppercase tracking-widest font-semibold">Home</Link>
+            <Link href="/#download" className="bg-gb-accent hover:bg-gb-accent-hover text-white text-xs px-4 py-2 rounded-gb font-bold transition-all shadow-md active:scale-[0.98]">
               Launch App
-            </a>
+            </Link>
           </div>
         </div>
       </nav>
@@ -76,7 +79,7 @@ export default function Docs() {
               <div>
                 <h1 className="font-display font-bold text-3xl text-white tracking-tight mb-2">Getting Started</h1>
                 <p className="text-gb-text-dim text-sm leading-relaxed">
-                  Grabbit is a minimal, lightning-fast media downloader. It allows you to download video and audio from popular platforms directly on your system, or interact with a live sandbox demo in the web browser.
+                  Grabbit is a minimal, lightning-fast media downloader. It allows you to download video and audio from popular platforms directly on your system, or download eligible MP4 videos in your web browser.
                 </p>
               </div>
 
@@ -89,21 +92,21 @@ export default function Docs() {
                   To get started with Grabbit on Windows, download our standalone installer. It bundles everything needed, including format pickers, download libraries, and the desktop runner.
                 </p>
                 <div className="pt-2">
-                  <a href="/downloads/Grabbit-Setup.exe" className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold bg-gb-accent hover:bg-gb-accent-hover text-white rounded-gb transition-all">
+                  <a href={WINDOWS_DOWNLOAD} className="inline-flex items-center gap-1.5 px-4 py-2 text-xs font-bold bg-gb-accent hover:bg-gb-accent-hover text-white rounded-gb transition-all">
                     Download for Windows 10/11
                   </a>
                 </div>
               </div>
 
               <div className="space-y-4">
-                <h2 className="font-display font-semibold text-lg text-white">Browser Sandbox Demo</h2>
+                <h2 className="font-display font-semibold text-lg text-white">Online Video Downloader</h2>
                 <p className="text-xs text-gb-text-dim leading-relaxed">
-                  If you prefer not to install the desktop client immediately, you can try our web platform client. The web version lets you parse URLs and examine download details in a sandboxed, responsive playground.
+                  Paste a public video link on the Grabbit homepage to save an eligible MP4 up to 50 MiB. Use the Windows app to choose a format or save MP3 audio.
                 </p>
                 <div>
-                  <a href="/app" className="inline-flex items-center gap-1.5 text-xs font-bold text-gb-accent hover:underline">
-                    Try Browser Demo &rarr;
-                  </a>
+                  <Link href="/#download" className="inline-flex items-center gap-1.5 text-xs font-bold text-gb-accent hover:underline">
+                    Open Online Downloader &rarr;
+                  </Link>
                 </div>
               </div>
             </div>
@@ -242,7 +245,7 @@ export default function Docs() {
               <div>
                 <h1 className="font-display font-bold text-3xl text-white tracking-tight mb-2">API Reference</h1>
                 <p className="text-gb-text-dim text-sm leading-relaxed">
-                  Integrate video extraction directly inside your applications by querying our REST parser.
+                  This metadata endpoint provides basic previews for supported links. Browser file downloads use a separate endpoint.
                 </p>
               </div>
 
@@ -288,7 +291,7 @@ export default function Docs() {
               <div className="space-y-4 text-xs text-gb-text-dim leading-relaxed">
                 <h2 className="font-display font-semibold text-base text-white">Privacy Statement</h2>
                 <p>
-                  Grabbit collects no personal, diagnostic, or activity information. All download operations, streaming inquiries, and parsing actions happen directly client-side on your local machine.
+                  The Windows app processes downloads on your computer. The browser sends your submitted link to the download service to retrieve the video.
                 </p>
 
                 <h2 className="font-display font-semibold text-base text-white">Terms of Service</h2>
